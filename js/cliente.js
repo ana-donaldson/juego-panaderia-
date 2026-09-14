@@ -33,7 +33,7 @@ function dibujarCliente(y, enojado) {
 function dibujarClienteFormas(y, enojado) {
     push();
     translate(width / 2, y);
-    // ... todo el código de dibujo con formas que ya tenías ...
+    // ... todo el código de dibujo con las formas ya presentes.
     pop();
 }
 
