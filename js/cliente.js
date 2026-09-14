@@ -8,13 +8,13 @@
 function dibujarCliente(y, enojado) {
     // Si la imagen existe, dibujarla
     if (imgCliente) {
-        // Ajustá estos valores según el tamaño de tu imagen
+        // Valores ajustados según el tamaño de tu imagen
         let ancho = 180;
         let alto = 250;
         let x = width/2 - ancho/2;
         let yPos = y - alto/2 + 30; // +30 para que quede bien ubicado
         
-        // Si está enojado, podrías agregar un filtro rojo (opcional)
+        // Si está enojado, se le agrega un filtro rojizo.
         if (enojado) {
             tint(255, 100, 100); // Tinte rojizo
         } else {
