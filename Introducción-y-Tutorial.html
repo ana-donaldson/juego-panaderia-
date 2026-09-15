@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Del Horno a la Mano — Panadería</title>
+<meta name="description" content="Portal de entrada al juego de la panadería: aprendé las reglas y entrá a atender el mostrador." />
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;0,9..144,700;1,9..144,500&family=Karla:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+<link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+<div class="crumbs" aria-hidden="true"></div>
+
+<header class="site-header">
+  <a class="brand" href="#top">
+    <span class="brand-mark">🥖</span>
+    <span class="brand-text">Del Horno a la Mano</span>
+  </a>
+  <button class="btn-login" id="abrirLogin" aria-haspopup="dialog" aria-controls="panelLogin">
+    Iniciar sesión
+  </button>
+</header>
+
+<main id="top">
+
+  <section class="hero">
+    <div class="hero-copy">
+      <p class="hero-kicker">un juego de mostrador</p>
+      <h1>Del horno<br>a la mano.</h1>
+      <p class="hero-lede">
+        Vas a ponerte del otro lado del mostrador: recibir el pedido, cobrar y dar
+        el vuelto justo antes de que se enfríe la fila. Cada centavo de más o de
+        menos le cuesta algo a la panadería.
+      </p>
+      <div class="hero-actions">
+        <a class="btn-jugar" href="juego/index.html">Jugar ahora</a>
+        <a class="link-reglas" href="#reglas">ver cómo se juega ↓</a>
+      </div>
+    </div>
+    <div class="hero-art" aria-hidden="true">
+      <svg viewBox="0 0 320 320" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="160" cy="160" r="150" fill="none" stroke="#D9A441" stroke-width="1.5" stroke-dasharray="2 10"/>
+        <g transform="translate(60,70)">
+          <path d="M20 90 Q10 40 60 25 Q110 10 150 45 Q180 70 150 100 Q170 130 120 140 Q60 160 30 130 Q0 110 20 90 Z" fill="#E3B45C"/>
+          <path d="M45 60 Q75 45 110 60" stroke="#8a5a1e" stroke-width="4" fill="none" stroke-linecap="round"/>
+          <path d="M40 90 Q75 75 115 90" stroke="#8a5a1e" stroke-width="4" fill="none" stroke-linecap="round"/>
+          <path d="M45 118 Q80 105 120 118" stroke="#8a5a1e" stroke-width="4" fill="none" stroke-linecap="round"/>
+        </g>
+        <circle cx="245" cy="90" r="18" fill="#9E3B23"/>
+        <circle cx="70" cy="250" r="14" fill="#6B3F22"/>
+      </svg>
+    </div>
+  </section>
+
+  <section class="franja" id="reglas">
+    <div class="franja-texto">
+      <h2>De qué se trata</h2>
+      <p>
+        Sos el o la cajera de "Del Horno a la Mano". Un cliente se acerca al
+        mostrador con un pedido de pan, facturas o medialunas, paga con un
+        billete y vos tenés que calcular y escribir el vuelto exacto antes de
+        confirmar.
+      </p>
+      <p>
+        Si te equivocás, la panadería pierde plata de la caja y el cliente se
+        va enojado. Si te quedás sin vidas o la caja llega a cero, se termina
+        el turno. El objetivo es simple: atender bien a los cinco clientes del
+        día.
+      </p>
+    </div>
+    <aside class="ticket" aria-label="Datos del juego en números">
+      <p class="ticket-titulo">Turno de hoy</p>
+      <ul>
+        <li><span>Clientes a atender</span><strong>5</strong></li>
+        <li><span>Vidas</span><strong>3</strong></li>
+        <li><span>Caja inicial</span><strong>$500</strong></li>
+        <li><span>Vuelto exacto</span><strong>+50 pts</strong></li>
+        <li><span>Pago justo, sin vuelto</span><strong>+30 pts</strong></li>
+      </ul>
+    </aside>
+  </section>
+
+  <section class="pasos">
+    <h2>Cómo se juega</h2>
+    <ol>
+      <li>
+        <span class="num">1</span>
+        <div>
+          <h3>Elegí el modo Cajero</h3>
+          <p>Desde el menú principal, presioná <kbd>1</kbd> para entrar al modo Cajero. El modo Cocinero todavía se está horneando.</p>
+        </div>
+      </li>
+      <li>
+        <span class="num">2</span>
+        <div>
+          <h3>Mirá el pedido y el pago</h3>
+          <p>Cada cliente muestra qué compró, el total y con cuánto paga. Hacé la cuenta del vuelto antes de escribir nada.</p>
+        </div>
+      </li>
+      <li>
+        <span class="num">3</span>
+        <div>
+          <h3>Cargá el vuelto</h3>
+          <p>Escribilo con los números y confirmá con <kbd>Enter</kbd>. Si el pago fue justo, alcanza con presionar <kbd>Espacio</kbd>.</p>
+        </div>
+      </li>
+      <li>
+        <span class="num">4</span>
+        <div>
+          <h3>Cuidá la caja y las vidas</h3>
+          <p>Dar de más o de menos resta puntos y vidas, y mueve la plata de la caja. Tres errores fuertes y se acaba el turno.</p>
+        </div>
+      </li>
+      <li>
+        <span class="num">5</span>
+        <div>
+          <h3>Cerrá el día</h3>
+          <p>Atendé a los cinco clientes para terminar el turno como panadero o panadera excepcional, con puntaje final incluido.</p>
+        </div>
+      </li>
+    </ol>
+  </section>
+
+  <section class="controles">
+    <h2>Controles</h2>
+    <div class="ficha">
+      <div class="fila"><kbd>0</kbd>–<kbd>9</kbd><span>Escribir el vuelto</span></div>
+      <div class="fila"><kbd>.</kbd><span>Punto decimal</span></div>
+      <div class="fila"><kbd>Enter</kbd><span>Confirmar</span></div>
+      <div class="fila"><kbd>Backspace</kbd><span>Borrar el último dígito</span></div>
+      <div class="fila"><kbd>Espacio</kbd><span>Avanzar cuando el pago es exacto</span></div>
+      <div class="fila"><kbd>Esc</kbd><span>Volver al menú</span></div>
+    </div>
+  </section>
+
+  <section class="cta-final">
+    <h2>¿Listo para abrir el mostrador?</h2>
+    <a class="btn-jugar" href="juego/index.html">Jugar ahora</a>
+  </section>
+
+</main>
+
+<footer class="site-footer">
+  <p>Del Horno a la Mano · un juego para aprender a calcular el vuelto</p>
+</footer>
+
+<!-- Panel de inicio de sesión, a un costado -->
+<div class="overlay" id="overlay" hidden></div>
+<aside class="panel-login" id="panelLogin" role="dialog" aria-modal="true" aria-labelledby="loginTitulo" hidden>
+  <button class="cerrar-login" id="cerrarLogin" aria-label="Cerrar">✕</button>
+  <h2 id="loginTitulo">Iniciar sesión</h2>
+  <p class="login-sub">Guardá tu nombre para que el mostrador te reconozca. No hace falta contraseña real, esto es una demo.</p>
+
+  <form id="formLogin">
+    <label for="nombreUsuario">Nombre</label>
+    <input type="text" id="nombreUsuario" name="nombre" placeholder="Tu nombre" autocomplete="username" required />
+
+    <label for="claveUsuario">Contraseña</label>
+    <input type="password" id="claveUsuario" name="clave" placeholder="••••••••" autocomplete="current-password" />
+
+    <button type="submit" class="btn-entrar">Entrar y jugar</button>
+  </form>
+
+  <button class="btn-invitado" id="entrarInvitado">Seguir como invitado</button>
+  <p class="login-nota" id="loginNota" hidden></p>
+</aside>
+
+<script src="script.js"></script>
+</body>
+</html>
