@@ -1,0 +1,6 @@
+Hoy es 30/9
+para el dia 6/10
+amarilla debe tener los bocetos de interfaz de usuario durante la partida de juego.
+Coro cambiar el nombre de archivo de index.html a inicio.html, xq en el index vas a poner el formulario de inicio de sesion de usuario(con validadcion, contraseña, correo, y lo que se te ocurra)
+Donalson elaborar la base de datos que va a guardar la informacion del usuario (db jugadores y tabla cocinero o cajero ) te vas a encargar de los archivos php de coro, para recibir datos en la db
+Coronel necesito que asesores al equipo con ejemplos de codigo que resuelva envio de datos de varibles de js hacia php -> a la base de datos
