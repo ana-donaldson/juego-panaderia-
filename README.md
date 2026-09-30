@@ -6,11 +6,11 @@ Estructura del proyecto:
 
 ```
 panaderia-portal/
-├── index.html        ← Portal de entrada (reglas + iniciar sesión + botón Jugar)
+├── inicio.html        ← Portal de entrada (reglas + iniciar sesión + botón Jugar)
 ├── style.css          ← Estilos del portal
 ├── script.js           ← Lógica del panel de login y el pase al juego
 └── juego/
-    ├── index.html      ← El juego (tal como estaba en el repo original)
+    ├── inicio.html      ← El juego (tal como estaba en el repo original)
     ├── style.css
     ├── js/
     │   ├── datos.js
@@ -25,10 +25,10 @@ panaderia-portal/
 
 ## Cómo funciona
 
-1. `index.html` (en la raíz) es el **portal**: explica de qué se trata el
+1. `inicio.html` (en la raíz) es el **portal**: explica de qué se trata el
    juego, cómo se juega y los controles, y tiene un botón de **"Iniciar
    sesión"** arriba a la derecha que abre un panel lateral.
-2. El botón **"Jugar ahora"** lleva directamente a `juego/index.html`, que es
+2. El botón **"Jugar ahora"** lleva directamente a `juego/inicio.html`, que es
    el juego original sin cambios de lógica (solo se reubicaron los archivos
    dentro de la carpeta `juego/`).
 3. El panel de login es una **demo sin backend**: guarda el nombre ingresado
@@ -49,7 +49,7 @@ que reemplazarlas por las imágenes reales del cliente y del mostrador
 ## Cómo probarlo
 
 Como el juego usa `p5.js` con `loadImage`, hace falta servirlo con un
-servidor local (no abrir el `index.html` con doble clic, por las
+servidor local (no abrir el `inicio.html` con doble clic, por las
 restricciones de `file://` en el navegador). Por ejemplo:
 
 ```bash
@@ -61,6 +61,6 @@ y abrir `http://localhost:8000` en el navegador.
 
 ## Deploy en GitHub Pages
 
-`index.html` en la raíz queda como portada y
+`inicio.html` en la raíz queda como portada y
 `/juego/` queda accesible desde el botón "Jugar ahora" sin configuración
 extra.
