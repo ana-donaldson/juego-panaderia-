@@ -37,7 +37,7 @@ function irAlJuego(nombre) {
   if (nombre) {
     localStorage.setItem('panaderiaJugador', nombre);
   }
-  window.location.href = 'juego/index.html';
+  window.location.href = 'juego/inicio.html';
 }
 
 formLogin.addEventListener('submit', (e) => {
