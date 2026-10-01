@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Ingresar — Del Horno a la Mano</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Karla:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="login.css" />
+</head>
+<body>
+<main class="ticket">
+  <h1 class="brand">🥖 Del Horno a la Mano</h1>
+  <p class="sub" id="subtitulo">Identificate para entrar al mostrador.</p>
+
+  <div class="tabs" role="group" aria-label="Modo">
+    <button type="button" id="tabLogin" aria-pressed="true">Iniciar sesión</button>
+    <button type="button" id="tabReg" aria-pressed="false">Crear cuenta</button>
+  </div>
+
+  <div id="estado" class="estado" role="status" aria-live="polite"></div>
+
+  <form id="form" novalidate autocomplete="on">
+    <!-- honeypot anti-bots: un humano nunca lo completa -->
+    <div class="trampa" aria-hidden="true"><input type="text" name="web" id="web" tabindex="-1" autocomplete="off"></div>
+
+    <div class="campo" data-show="login reg">
+      <label for="usuario" id="lblUsuario">Usuario o correo</label>
+      <input id="usuario" name="usuario" type="text" autocomplete="username" maxlength="60" />
+      <p class="hint" data-show="reg">3 a 16 caracteres, solo letras y números.</p>
+      <p class="err" id="usuario-err"></p>
+    </div>
+
+    <div class="campo" data-show="reg rec">
+      <label for="email">Correo electrónico</label>
+      <input id="email" name="email" type="email" autocomplete="email" maxlength="80" />
+      <p class="err" id="email-err"></p>
+    </div>
+
+    <div class="campo" data-show="reg">
+      <label for="rol">¿Con qué rol querés jugar?</label>
+      <select id="rol" name="rol">
+        <option value="cajero">Cajero</option>
+        <option value="cocinero">Cocinero</option>
+      </select>
+    </div>
+
+    <div class="campo" data-show="login reg">
+      <label for="pass">Contraseña</label>
+      <div class="pw">
+        <input id="pass" name="pass" type="password" autocomplete="current-password" maxlength="64" />
+        <button type="button" class="ver" data-ver="pass" aria-label="Mostrar contraseña">Mostrar</button>
+      </div>
+      <p class="hint" id="mayus" hidden>⚠ Tenés las mayúsculas activadas.</p>
+      <div class="medidor" id="medidor" data-n="0" data-show="reg" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
+      <p class="hint" id="fuerza" data-show="reg">Mínimo 8 caracteres, con mayúscula, minúscula y número.</p>
+      <p class="err" id="pass-err"></p>
+    </div>
+
+    <div class="campo" data-show="reg">
+      <label for="pass2">Repetí la contraseña</label>
+      <div class="pw">
+        <input id="pass2" name="pass2" type="password" autocomplete="new-password" maxlength="64" />
+        <button type="button" class="ver" data-ver="pass2" aria-label="Mostrar contraseña">Mostrar</button>
+      </div>
+      <p class="err" id="pass2-err"></p>
+    </div>
+
+    <div class="fila" data-show="login">
+      <label><input type="checkbox" id="recordar" /> Recordarme</label>
+      <button type="button" class="link" id="olvide">Olvidé mi contraseña</button>
+    </div>
+
+    <div class="campo" data-show="reg">
+      <div class="fila terms" style="margin-bottom:0">
+        <label><input type="checkbox" id="terminos" /> Acepto las reglas de convivencia: nada de insultos ni nombres ofensivos.</label>
+      </div>
+      <p class="err" id="terminos-err"></p>
+    </div>
+
+    <button class="principal" id="enviar" type="submit">Entrar</button>
+  </form>
+
+  <div class="pie">
+    <span id="pieTxt">¿Querés probar antes?</span>
+    <button type="button" class="link" id="invitado">Seguir como invitado</button>
+    <button type="button" class="link" id="volver" hidden>Volver a iniciar sesión</button>
+  </div>
+</main>
+
+<script src="login.js"></script>
+</body>
+</html>
