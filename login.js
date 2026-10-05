@@ -6,7 +6,7 @@
    y se espera:   { ok: true|false, mensaje: '...', usuario: '...', rol: '...' }
    El PHP debe guardar la clave con password_hash() y usar HTTPS.
    ============================================================ */
-const API = '';
+const API = 'php/auth.php';
 const JUEGO = 'inicio.html';
 const MAX_INTENTOS = 5, BLOQUEO_SEG = 30;
 
