@@ -6,6 +6,7 @@
    y se espera:   { ok: true|false, mensaje: '...', usuario: '...', rol: '...' }
    El PHP debe guardar la clave con password_hash() y usar HTTPS.
    ============================================================ */
+
 const API = 'php/auth.php';
 const JUEGO = 'inicio.html';
 const MAX_INTENTOS = 5, BLOQUEO_SEG = 30;
@@ -140,48 +141,27 @@ $('#terminos').addEventListener('change', () => validar('terminos'));
 /* ---------- Mensajes y envío ---------- */
 function aviso(txt, tipo){ estado.textContent = txt; estado.className = 'estado show ' + tipo; }
 
-async function sha256(t){
-  if (!(window.crypto && crypto.subtle)) return t; // sin HTTPS/localhost no hay hash (solo demo)
-  const b = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(t));
-  return [...new Uint8Array(b)].map(x => x.toString(16).padStart(2,'0')).join('');
-}
-
-/* Demo sin backend: usuarios en localStorage. Reemplazar por PHP + DB. */
-async function demo(d){
-  let usuarios = {};
-  try { usuarios = JSON.parse(localStorage.getItem('panaderiaUsuarios') || '{}'); } catch(e){}
-  const guardar = () => { try { localStorage.setItem('panaderiaUsuarios', JSON.stringify(usuarios)); } catch(e){} };
-  if (d.accion === 'registro'){
-    const k = d.usuario.toLowerCase();
-    if (usuarios[k]) return { ok:false, mensaje:'Ese usuario ya existe.' };
-    if (Object.values(usuarios).some(u => u.email === d.email.toLowerCase())) return { ok:false, mensaje:'Ese correo ya está registrado.' };
-    usuarios[k] = { nombre:d.usuario, email:d.email.toLowerCase(), rol:d.rol, hash: await sha256(d.pass) };
-    guardar();
-    return { ok:true, mensaje:'¡Cuenta creada!', usuario:d.usuario, rol:d.rol };
-  }
-  if (d.accion === 'login'){
-    const id = d.usuario.toLowerCase();
-    const u = usuarios[id] || Object.values(usuarios).find(x => x.email === id);
-    if (!u || u.hash !== await sha256(d.pass)) return { ok:false, mensaje:'Usuario o contraseña incorrectos.' };
-    return { ok:true, mensaje:'¡Bienvenido!', usuario:u.nombre, rol:u.rol };
-  }
-  return { ok:true, mensaje:'Si el correo está registrado, te enviamos un enlace. (demo)' };
-}
-
 async function enviar(d){
-  if (!API) return demo(d);
-  const r = await fetch(API, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(d) });
+  const r = await fetch(API, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(d)
+  });
   return r.json();
 }
 
-function irAlJuego(nombre, rol){
-  try { localStorage.setItem('panaderiaJugador', nombre); if (rol) localStorage.setItem('panaderiaRol', rol); } catch(e){}
+// ✅ MODIFICADO: ahora recibe el ID y lo guarda en localStorage
+function irAlJuego(nombre, id){
+  try {
+    localStorage.setItem('panaderiaJugador', nombre);
+    if (id) localStorage.setItem('jugador_id', id);  // ✅ GUARDA EL ID
+  } catch(e){}
   setTimeout(() => location.href = JUEGO, 900);
 }
 
 form.addEventListener('submit', async e => {
   e.preventDefault();
-  if ($('#web').value) return;                                   // bot detectado
+  if ($('#web').value) return;
   const ahora = Date.now();
   if (ahora < bloqueadoHasta) return aviso(`Demasiados intentos. Esperá ${Math.ceil((bloqueadoHasta-ahora)/1000)} s.`, 'error');
 
@@ -190,23 +170,36 @@ form.addEventListener('submit', async e => {
 
   const d = {
     accion: { login:'login', reg:'registro', rec:'recuperar' }[modo],
-    usuario: $('#usuario').value.trim(), email: $('#email').value.trim(),
-    pass: $('#pass').value, rol: $('#rol').value
+    usuario: $('#usuario').value.trim(),
+    email: $('#email').value.trim(),
+    pass: $('#pass').value,
+    rol: $('#rol').value
   };
+
   const btn = $('#enviar'); btn.disabled = true;
   try {
     const r = await enviar(d);
     if (!r.ok){
-      if (modo === 'login' && ++intentos >= MAX_INTENTOS){ bloqueadoHasta = Date.now() + BLOQUEO_SEG*1000; intentos = 0; return aviso(`Demasiados intentos. Esperá ${BLOQUEO_SEG} s.`, 'error'); }
+      if (modo === 'login' && ++intentos >= MAX_INTENTOS){
+        bloqueadoHasta = Date.now() + BLOQUEO_SEG*1000;
+        intentos = 0;
+        return aviso(`Demasiados intentos. Esperá ${BLOQUEO_SEG} s.`, 'error');
+      }
       return aviso(r.mensaje || 'No se pudo completar la acción.', 'error');
     }
     aviso(r.mensaje, 'exito');
     if (modo === 'rec') return;
-    try { $('#recordar').checked && modo === 'login' ? localStorage.setItem('panaderiaRecordar', d.usuario) : localStorage.removeItem('panaderiaRecordar'); } catch(e){}
-    irAlJuego(r.usuario || d.usuario, r.rol);
+    try {
+      $('#recordar').checked && modo === 'login'
+        ? localStorage.setItem('panaderiaRecordar', d.usuario)
+        : localStorage.removeItem('panaderiaRecordar');
+    } catch(e){}
+    irAlJuego(r.usuario || d.usuario, r.id);  // ✅ PASA EL ID
   } catch(err){
     aviso('No pudimos conectar con el servidor. Probá de nuevo.', 'error');
-  } finally { btn.disabled = false; }
+  } finally {
+    btn.disabled = false;
+  }
 });
 
 $('#invitado').onclick = () => { aviso('Entrando como invitado…', 'exito'); irAlJuego('Invitado'); };

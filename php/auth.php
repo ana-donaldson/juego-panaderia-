@@ -50,7 +50,8 @@ if ($accion === 'registro') {
         echo json_encode([
             'ok' => true,
             'mensaje' => '¡Cuenta creada!',
-            'usuario' => $usuario
+            'usuario' => $usuario,
+            'id' => $stmt->insert_id  // ✅ DEVUELVE EL ID
         ]);
     } else {
         echo json_encode(['ok' => false, 'mensaje' => 'Error al registrar: ' . $conn->error]);
@@ -75,7 +76,8 @@ if ($accion === 'registro') {
             echo json_encode([
                 'ok' => true,
                 'mensaje' => '¡Bienvenido!',
-                'usuario' => $user['nombre_usuario']
+                'usuario' => $user['nombre_usuario'],
+                'id' => $user['id']  // ✅ DEVUELVE EL ID
             ]);
         } else {
             echo json_encode(['ok' => false, 'mensaje' => 'Usuario o contraseña incorrectos']);
@@ -86,7 +88,6 @@ if ($accion === 'registro') {
     $stmt->close();
 
 } else if ($accion === 'recuperar') {
-    // --- RECUPERAR CONTRASEÑA (simulado por ahora) ---
     echo json_encode(['ok' => true, 'mensaje' => 'Si el correo está registrado, te enviamos un enlace.']);
 } else {
     echo json_encode(['ok' => false, 'mensaje' => 'Acción no válida']);

@@ -42,12 +42,11 @@ const clientes = [
     }
 ];
 
-// ---------- PRODUCTOS (para futura expansión) ----------
 const productos = [
-    { nombre: "Pan", precio: 0.50, fraccion: "unidad" },
-    { nombre: "Factura", precio: 0.75, fraccion: "unidad" },
-    { nombre: "Medialuna", precio: 0.80, fraccion: "unidad" },
-    { nombre: "Galleta", precio: 0.40, fraccion: "unidad" },
-    { nombre: "Pan (1/2 kg)", precio: 1.25, fraccion: "1/2 kg" },
-    { nombre: "Pan (1 kg)", precio: 2.50, fraccion: "1 kg" }
+    { nombre: "Pan", precio: 0.50, fraccion: "unidad", imagen: "pan.jpg" },
+    { nombre: "Factura", precio: 0.75, fraccion: "unidad", imagen: "factura.jpg" },
+    { nombre: "Medialuna", precio: 0.80, fraccion: "unidad", imagen: "medialuna.jpg" },
+    { nombre: "Galleta", precio: 0.40, fraccion: "unidad", imagen: "galleta.jpg" },
+    { nombre: "Pan (1/2 kg)", precio: 1.25, fraccion: "1/2 kg", imagen: "pan.jpg" },
+    { nombre: "Pan (1 kg)", precio: 2.50, fraccion: "1 kg", imagen: "pan.jpg" }
 ];

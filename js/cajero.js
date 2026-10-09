@@ -1,8 +1,11 @@
-
+// ============================================
+// MODO CAJERO - Lógica completa
+// ============================================
 
 function cargarCliente(indice) {
     if (indice >= clientes.length) {
         estado = "fin";
+        guardarPartidaEnServidor();
         return;
     }
 
@@ -17,13 +20,12 @@ function cargarCliente(indice) {
     mensaje = "";
     mostrandoResultado = false;
     clienteEnojado = false;
+    bolsa = [];
 
     mostrarCliente();
 
-    console.log("Cliente cargado:", cliente.nombre);
-    console.log("Total: $" + totalCorrecto.toFixed(2));
-    console.log("Pago: $" + pagoCliente.toFixed(2));
-    console.log("Vuelto: $" + vueltoCorrecto.toFixed(2));
+    // Asegurar que estamos en la escena 1
+    estado = "cajero_escena1";
 }
 
 function calcularTotal(pedido) {
@@ -35,15 +37,8 @@ function calcularTotal(pedido) {
 }
 
 function verificarVuelto() {
-    if (!clienteVisible) {
-        console.log("Error: Cliente no visible");
-        return;
-    }
-
-    if (vueltoCorrecto <= 0) {
-        console.log("Error: No hay vuelto que calcular");
-        return;
-    }
+    if (!clienteVisible) return;
+    if (vueltoCorrecto <= 0) return;
 
     let ingresado = parseFloat(inputVuelto);
     if (isNaN(ingresado)) {
@@ -55,14 +50,13 @@ function verificarVuelto() {
     ingresado = Math.round(ingresado * 100) / 100;
     let correcto = Math.round(vueltoCorrecto * 100) / 100;
 
-    console.log("Vuelto ingresado: $" + ingresado.toFixed(2));
-    console.log("Vuelto correcto: $" + correcto.toFixed(2));
-
+    // --- CASO 1: Vuelto EXACTO ---
     if (ingresado === correcto) {
         mensaje = "✅ ¡Perfecto! Vuelto exacto de $" + correcto.toFixed(2) + " 🎉";
         mensajeColor = color(0, 150, 0);
         puntos += 50;
         clientesAtendidos++;
+        caja = Math.round((caja + totalCorrecto) * 100) / 100;
 
         mostrandoResultado = true;
         setTimeout(() => {
@@ -82,6 +76,7 @@ function verificarVuelto() {
             mensajeColor = color(200, 0, 0);
             setTimeout(() => {
                 estado = "fin";
+                guardarPartidaEnServidor();  // ✅ GUARDAR AL PERDER
             }, 3000);
         } else {
             mensaje = "❌ El vuelto era $" + correcto.toFixed(2) + " y le diste $" + ingresado.toFixed(2) + ". Perdiste $" + diferencia.toFixed(2);
@@ -99,6 +94,7 @@ function verificarVuelto() {
                     cargarCliente(clienteActual);
                 } else {
                     estado = "fin";
+                    guardarPartidaEnServidor();  // ✅ GUARDAR AL PERDER
                 }
             }
         }, 3500);
@@ -124,6 +120,7 @@ function verificarVuelto() {
                     cargarCliente(clienteActual);
                 } else {
                     estado = "fin";
+                    guardarPartidaEnServidor();  // ✅ GUARDAR AL PERDER
                 }
             }
         }, 3500);
@@ -143,4 +140,57 @@ function avanzarSinVuelto() {
         clienteActual++;
         cargarCliente(clienteActual);
     }, 2000);
+}
+function bolsaCompleta() {
+    // Recorrer el pedido y verificar que cada producto esté completo en la bolsa
+    for (let i = 0; i < pedidoActual.length; i++) {
+        let item = pedidoActual[i];
+        let enBolsa = bolsa.filter(p => p.nombre === item.producto).length;
+        if (enBolsa < item.cantidad) {
+            return false;
+        }
+    }
+    // Verificar que no haya productos de más
+    if (bolsa.length !== pedidoActual.reduce((sum, item) => sum + item.cantidad, 0)) {
+        return false;
+    }
+    return true;
+}
+// ============================================
+// ✅ NUEVA FUNCIÓN: GUARDAR PARTIDA EN EL SERVIDOR
+// ============================================
+function guardarPartidaEnServidor() {
+    let jugador_id = localStorage.getItem('jugador_id');
+
+    // Si no hay jugador logueado, no guardamos
+    if (!jugador_id) {
+        console.log("No hay jugador logueado. No se guarda la partida.");
+        return;
+    }
+
+    let datos = {
+        jugador_id: parseInt(jugador_id),
+        puntuacion: puntos,
+        modo: 'cajero',
+        clientes_atendidos: clientesAtendidos,
+        caja_final: caja
+    };
+
+    console.log("Guardando partida:", datos);
+
+    fetch('php/guardar_partida.php', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(datos)
+    })
+    .then(res => res.json())
+    .then(data => {
+        console.log("Respuesta del servidor:", data);
+        if (data.success) {
+            console.log("✅ Partida guardada correctamente");
+        } else {
+            console.error("❌ Error al guardar:", data.mensaje);
+        }
+    })
+    .catch(err => console.error("❌ Error de conexión:", err));
 }
