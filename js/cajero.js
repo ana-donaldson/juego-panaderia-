@@ -23,8 +23,6 @@ function cargarCliente(indice) {
     bolsa = [];
 
     mostrarCliente();
-
-    // Asegurar que estamos en la escena 1
     estado = "cajero_escena1";
 }
 
@@ -76,7 +74,7 @@ function verificarVuelto() {
             mensajeColor = color(200, 0, 0);
             setTimeout(() => {
                 estado = "fin";
-                guardarPartidaEnServidor();  // ✅ GUARDAR AL PERDER
+                guardarPartidaEnServidor();
             }, 3000);
         } else {
             mensaje = "❌ El vuelto era $" + correcto.toFixed(2) + " y le diste $" + ingresado.toFixed(2) + ". Perdiste $" + diferencia.toFixed(2);
@@ -94,7 +92,7 @@ function verificarVuelto() {
                     cargarCliente(clienteActual);
                 } else {
                     estado = "fin";
-                    guardarPartidaEnServidor();  // ✅ GUARDAR AL PERDER
+                    guardarPartidaEnServidor();
                 }
             }
         }, 3500);
@@ -120,7 +118,7 @@ function verificarVuelto() {
                     cargarCliente(clienteActual);
                 } else {
                     estado = "fin";
-                    guardarPartidaEnServidor();  // ✅ GUARDAR AL PERDER
+                    guardarPartidaEnServidor();
                 }
             }
         }, 3500);
@@ -141,8 +139,8 @@ function avanzarSinVuelto() {
         cargarCliente(clienteActual);
     }, 2000);
 }
+
 function bolsaCompleta() {
-    // Recorrer el pedido y verificar que cada producto esté completo en la bolsa
     for (let i = 0; i < pedidoActual.length; i++) {
         let item = pedidoActual[i];
         let enBolsa = bolsa.filter(p => p.nombre === item.producto).length;
@@ -150,19 +148,18 @@ function bolsaCompleta() {
             return false;
         }
     }
-    // Verificar que no haya productos de más
     if (bolsa.length !== pedidoActual.reduce((sum, item) => sum + item.cantidad, 0)) {
         return false;
     }
     return true;
 }
+
 // ============================================
-// ✅ NUEVA FUNCIÓN: GUARDAR PARTIDA EN EL SERVIDOR
+// GUARDAR PARTIDA EN EL SERVIDOR
 // ============================================
 function guardarPartidaEnServidor() {
     let jugador_id = localStorage.getItem('jugador_id');
 
-    // Si no hay jugador logueado, no guardamos
     if (!jugador_id) {
         console.log("No hay jugador logueado. No se guarda la partida.");
         return;
