@@ -48,3 +48,37 @@ const productos = [
     { nombre: "Medialuna", precio: 0.80, fraccion: "unidad", imagen: "medialuna.jpg" },
     { nombre: "Galleta", precio: 0.40, fraccion: "unidad", imagen: "galleta.jpg" }
 ];
+
+// ---------- RECETAS DEL MODO COCINERO ----------
+const recetas = [
+    {
+        nombre: "Medialunas",
+        imagen: "productos/recetas/medialuna.jpg", 
+        ingredientes: ["Harina", "Manteca", "Leche", "Azúcar"],
+        temperatura: 180,
+        tiempoIdeal: 15,
+        necesitaBrillo: true,
+        necesitaDecoracion: false
+    },
+    {
+        nombre: "Torta",
+        imagen: "torta.jpg",
+        ingredientes: ["Harina", "Huevos", "Leche", "Azúcar"],
+        temperatura: 170,
+        tiempoIdeal: 20,
+        necesitaBrillo: false,
+        necesitaDecoracion: true
+    }
+];
+
+// Ingredientes que van a aparecer en la mesa para elegir
+const ingredientesDisponibles = [
+    "Harina", "Manteca", "Leche", "Azúcar", "Huevos", "Sal", "Levadura"
+];
+
+const decoracionesDisponibles = [
+    "Crema de Chocolate",
+    "Crema de Vainilla",
+    "Frutillas",
+    "Azúcar Impalpable"
+];

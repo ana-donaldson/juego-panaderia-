@@ -9,6 +9,9 @@ function cargarCliente(indice) {
         return;
     }
 
+ // ✅ CONTADOR: incrementa apenas llega el cliente
+    clientesAtendidos = indice + 1;
+    
     let cliente = clientes[indice];
     clienteActual = indice;
     pedidoActual = cliente.pedido;

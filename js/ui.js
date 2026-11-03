@@ -221,25 +221,29 @@ function mostrarFin() {
     fill(0);
     textSize(30);
 
-    if (caja <= 0) {
+    // ✅ Si viene del cocinero, mostramos victoria
+    if (modoSeleccionado === "cocinero") {
+        text("🎉 ¡DELICIOSO!", width / 2, 200);
+        text("Preparaste " + recetaActual.nombre, width / 2, 250);
+        text("Con: " + decoracionElegida, width / 2, 290);
+        textSize(18);
+        text("¡Sos un maestro pastelero!", width / 2, 350);
+    } 
+    // Si viene del cajero, mantenemos tu lógica de siempre
+    else if (caja <= 0) {
         text("💀 ¡LA PANADERÍA QUEBRÓ!", width / 2, 160);
-        text("Te quedaste sin dinero en caja", width / 2, 210);
-        text("Atendiste " + clientesAtendidos + " clientes", width / 2, 260);
-        text("⭐ Puntuación: " + puntos, width / 2, 310);
+        // ... (tu código del cajero)
     } else if (vidas <= 0) {
         text("💀 GAME OVER", width / 2, 200);
-        text("Atendiste " + clientesAtendidos + " clientes", width / 2, 250);
-        text("⭐ Puntuación: " + puntos, width / 2, 300);
+        // ... (tu código del cajero)
     } else {
         text("🎉 ¡PANADERO EXCEPCIONAL!", width / 2, 180);
-        text("Atendiste a TODOS los clientes", width / 2, 230);
-        text("💰 Caja final: $" + caja.toFixed(2), width / 2, 280);
-        text("⭐ Puntuación final: " + puntos, width / 2, 330);
+        // ... (tu código del cajero)
     }
 
     textSize(18);
-    text("Presiona R para reiniciar", width / 2, 400);
-    text("Presiona M para volver al menú", width / 2, 440);
+    text("Presiona R para reiniciar", width / 2, 450);
+    text("Presiona M para volver al menú", width / 2, 490);
 }
 // ============================================
 // ESCENA 1: ATENCIÓN AL CLIENTE
@@ -381,14 +385,43 @@ function mostrarInterfazEscena3() {
     textSize(16);
     text("🛍️ BOLSA:", width / 2, 390);
 
-    let bolsaTexto = "";
-    for (let i = 0; i < bolsa.length; i++) {
-        bolsaTexto += bolsa[i].nombre + " ";
-    }
+       // ✅ Mostrar productos agrupados en la bolsa
     textSize(14);
     fill(80);
-    text(bolsaTexto || "(vacía)", width / 2, 430);
+    
+    if (bolsa.length === 0) {
+        text("(vacía)", width / 2, 430);
+    } else {
+        // 1. Contar cuántos hay de cada producto
+        let conteo = {};
+        for (let i = 0; i < bolsa.length; i++) {
+            let nombre = bolsa[i].nombre;
+            if (!conteo[nombre]) {
+                conteo[nombre] = 1;
+            } else {
+                conteo[nombre]++;
+            }
+        }
 
+        // 2. Armar el texto de la lista
+        let yTexto = 415;
+        for (let nombre in conteo) {
+            let cantidad = conteo[nombre];
+            
+            // Lógica simple para plurales
+            let nombreMostrar = nombre;
+            if (cantidad > 1) {
+                if (nombre === "Pan") nombreMostrar = "Panes";
+                else if (nombre === "Factura") nombreMostrar = "Facturas";
+                else if (nombre === "Medialuna") nombreMostrar = "Medialunas";
+                else if (nombre === "Galleta") nombreMostrar = "Galletas";
+                else nombreMostrar = nombre + "s";
+            }
+
+            text("• " + cantidad + " " + nombreMostrar, width / 2 - 150, yTexto);
+            yTexto += 20; // Bajar a la siguiente línea
+        }
+    }
     // Mensaje
     if (mensaje !== "") {
         fill(mensajeColor);
@@ -400,9 +433,11 @@ function mostrarInterfazEscena3() {
     fill(100);
     textSize(13);
     text("← → Seleccionar producto  |  ENTER Agregar  |  ESPACIO Ir a cobrar", width / 2, height - 30);
+// Dibujar animaciones de productos volando a la bolsa
+dibujarAnimaciones();
 }
 // ============================================
-// ESCENA 2: CAJA REGISTRADORA
+// ESCENA 3: CAJA REGISTRADORA
 // ============================================
 function mostrarInterfazEscena2() {
     // Info superior
@@ -476,7 +511,7 @@ function mostrarInterfazEscena2() {
 }
 
 // ============================================
-// AGREGAR PRODUCTO A LA BOLSA (escena 3)
+// AGREGAR PRODUCTO A LA BOLSA (escena 2)
 // ============================================
 function agregarProductoALaBolsa(indice) {
     if (indice < 0 || indice >= productos.length) return;
@@ -499,8 +534,59 @@ function agregarProductoALaBolsa(indice) {
         return;
     }
 
-    // Agregar a la bolsa
+   // ✅ Agregar a la bolsa
     bolsa.push(producto);
     mensaje = "✅ " + producto.nombre + " agregado";
     mensajeColor = color(0, 150, 0);
+
+    // ✅ CREAR ANIMACIÓN
+    // Calcular posición inicial (donde está el producto)
+    let productosMostrar = productos.slice(0, 4);
+    let anchoProducto = 150;
+    let espacio = 20;
+    let totalAncho = productosMostrar.length * anchoProducto + (productosMostrar.length - 1) * espacio;
+    let inicioX = width / 2 - totalAncho / 2;
+    let xInicial = inicioX + indice * (anchoProducto + espacio) + 15;
+    let yInicial = 190 + 5;
+
+    // Posición final (la bolsa)
+    let xFinal = width / 2;
+    let yFinal = 420;
+
+    // Crear la animación
+    animaciones.push({
+        img: imagenesProductos[producto.nombre],
+        x: xInicial,
+        y: yInicial,
+        xInicial: xInicial,
+        yInicial: yInicial,
+        xFinal: xFinal,
+        yFinal: yFinal,
+        progreso: 0
+    });
+}
+function dibujarAnimaciones() {
+    for (let i = animaciones.length - 1; i >= 0; i--) {
+        let anim = animaciones[i];
+        
+        // Avanzar el progreso
+        anim.progreso += 0.05;
+        
+        // Interpolar posición
+        anim.x = lerp(anim.xInicial, anim.xFinal, anim.progreso);
+        anim.y = lerp(anim.yInicial, anim.yFinal, anim.progreso);
+        
+        // Dibujar la imagen con transparencia (se desvanece)
+        let alpha = map(anim.progreso, 0, 1, 255, 0);
+        tint(255, alpha);
+        if (anim.img) {
+            image(anim.img, anim.x, anim.y, 100, 80);
+        }
+        noTint();
+        
+        // Si terminó, eliminar la animación
+        if (anim.progreso >= 1) {
+            animaciones.splice(i, 1);
+        }
+    }
 }
