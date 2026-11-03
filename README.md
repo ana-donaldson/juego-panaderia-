@@ -1,6 +1,6 @@
 # juego-panaderia-
 
-# Del Horno a la Mano — Portal + Juego
+# Reino del pastel — Portal + Juego
 
 Estructura del proyecto:
 
