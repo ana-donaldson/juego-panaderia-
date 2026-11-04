@@ -49,8 +49,8 @@ function mostrarMenu() {
 
     fill(0);
     textSize(22);
-    text("Presiona 1 → Modo Cajero", width / 2, 280);
-    text("Presiona 2 → Modo Cocinero (próximamente)", width / 2, 330);
+    text('Presione la Tecla "1" → Modo Cajero', width / 2, 280);
+    text('Presione la Tecla "2" → Modo Cocinero', width / 2, 330);
 
     fill(150);
     textSize(14);
@@ -88,15 +88,7 @@ function mostrarInstrucciones() {
     text("   Atender a 5 clientes sin perder todas las vidas.", x, y + 305);
 
     textAlign(CENTER, CENTER);
-    fill(139, 69, 19);
-    rect(width / 2 - 120, 450, 240, 50, 10);
-    fill(255);
-    textSize(20);
-    text("▶  PRESIONA ENTER", width / 2, 475);
-
-    fill(100);
-    textSize(14);
-    text("(Presiona ENTER para empezar)", width / 2, 530);
+    dibujarAviso("Presione la tecla 'ENTER' para comenzar", width / 2, 480, "fuerte");
 }
 
 // INTERFAZ DEL CAJERO
@@ -285,10 +277,8 @@ function mostrarInterfazEscena1() {
         text("Quiero: " + pedidoTexto, width / 2, 130);
         text("💵 Paga con: $" + pagoCliente, width / 2, 160);
 
-        // Instrucción
-        fill(100);
-        textSize(16);
-        text("Presiona ESPACIO para armar el pedido", width / 2, 240);
+        // Instrucción (destacada)
+        dibujarAviso("Presione la tecla 'ESPACIO' para armar el pedido", width / 2, 245, "fuerte");
     } else if (clienteAnimando) {
         fill(100);
         textSize(20);
@@ -377,9 +367,16 @@ function mostrarInterfazEscena3() {
         text("$" + productosMostrar[i].precio.toFixed(2), x + anchoProducto / 2, y + 135);
     }
 
-    // Bolsa
-    fill(200, 180, 140);
+    // Bolsa (se resalta cuando se arrastra un producto encima)
+    if (arrastrando && arrastrando.movido && mouseSobreBolsa()) {
+        fill(230, 200, 130);
+        stroke(200, 150, 0);
+        strokeWeight(4);
+    } else {
+        fill(200, 180, 140);
+    }
     rect(width / 2 - 200, 370, 400, 100, 10);
+    noStroke();
 
     fill(0);
     textSize(16);
@@ -390,7 +387,7 @@ function mostrarInterfazEscena3() {
     fill(80);
     
     if (bolsa.length === 0) {
-        text("(vacía)", width / 2, 430);
+        text("(vacía) — hacé clic o arrastrá productos acá", width / 2, 430);
     } else {
         // 1. Contar cuántos hay de cada producto
         let conteo = {};
@@ -422,19 +419,29 @@ function mostrarInterfazEscena3() {
             yTexto += 20; // Bajar a la siguiente línea
         }
     }
-    // Mensaje
+    // Mensaje (cartel suave, del color del mensaje)
     if (mensaje !== "") {
-        fill(mensajeColor);
-        textSize(14);
-        text(mensaje, width / 2, 500);
+        dibujarAviso(mensaje, width / 2, 497, "suave", mensajeColor);
     }
 
-    // Instrucciones
-    fill(100);
-    textSize(13);
-    text("← → Seleccionar producto  |  ENTER Agregar  |  ESPACIO Ir a cobrar", width / 2, height - 30);
-// Dibujar animaciones de productos volando a la bolsa
-dibujarAnimaciones();
+    // Instrucciones (destacadas, una línea debajo de la otra)
+    dibujarAviso([
+        "Presione las teclas '← →' para seleccionar un producto y 'ENTER' para agregarlo",
+        "Presione la tecla 'ESPACIO' para ir a cobrar"
+    ], width / 2, 563, "suave");
+
+    // Producto que se está arrastrando con el mouse
+    if (arrastrando && arrastrando.movido) {
+        let imgArrastre = imagenesProductos[productos[arrastrando.indice].nombre];
+        if (imgArrastre) image(imgArrastre, mouseX - 60, mouseY - 45, 120, 90);
+    }
+
+    // Cursor de mano sobre los productos
+    if (arrastrando && arrastrando.movido) cursor('grabbing');
+    else if (productoBajoMouse() >= 0) cursor(HAND);
+
+    // Dibujar animaciones de productos volando a la bolsa
+    dibujarAnimaciones();
 }
 // ============================================
 // ESCENA 3: CAJA REGISTRADORA
@@ -513,7 +520,7 @@ function mostrarInterfazEscena2() {
 // ============================================
 // AGREGAR PRODUCTO A LA BOLSA (escena 2)
 // ============================================
-function agregarProductoALaBolsa(indice) {
+function agregarProductoALaBolsa(indice, xOrigen, yOrigen) {
     if (indice < 0 || indice >= productos.length) return;
 
     let producto = productos[indice];
@@ -546,8 +553,8 @@ function agregarProductoALaBolsa(indice) {
     let espacio = 20;
     let totalAncho = productosMostrar.length * anchoProducto + (productosMostrar.length - 1) * espacio;
     let inicioX = width / 2 - totalAncho / 2;
-    let xInicial = inicioX + indice * (anchoProducto + espacio) + 15;
-    let yInicial = 190 + 5;
+    let xInicial = (xOrigen !== undefined) ? xOrigen : inicioX + indice * (anchoProducto + espacio) + 15;
+    let yInicial = (yOrigen !== undefined) ? yOrigen : 190 + 5;
 
     // Posición final (la bolsa)
     let xFinal = width / 2;
@@ -589,4 +596,85 @@ function dibujarAnimaciones() {
             animaciones.splice(i, 1);
         }
     }
+}
+
+// ============================================
+// AVISOS DESTACADOS (cartel con remarco y hover)
+// ============================================
+// lineas: un texto o una lista de textos (uno debajo del otro)
+// nivel:  "fuerte" (llamado principal) o "suave" (recordatorio o mensaje)
+// col:    color opcional del borde y del texto (nivel "suave")
+function dibujarAviso(lineas, cx, cy, nivel, col) {
+    if (!Array.isArray(lineas)) lineas = [lineas];
+    let fuerte = (nivel === "fuerte");
+    let tam = fuerte ? 20 : 14;
+    let altoLinea = tam + 6;
+
+    push();
+    textStyle(BOLD);
+    textSize(tam);
+    textAlign(CENTER, CENTER);
+
+    let ancho = 0;
+    for (let i = 0; i < lineas.length; i++) ancho = Math.max(ancho, textWidth(lineas[i]));
+    ancho += fuerte ? 60 : 36;
+    let alto = lineas.length * altoLinea + 12 + (fuerte ? 10 : 0);
+
+    // ¿El mouse está encima?
+    let encima = mouseX > cx - ancho / 2 && mouseX < cx + ancho / 2 &&
+                 mouseY > cy - alto / 2 && mouseY < cy + alto / 2;
+
+    translate(cx, cy);
+    if (encima) scale(1.04);
+
+    // Sombra
+    noStroke();
+    fill(80, 40, 10, 50);
+    rect(-ancho / 2 + 3, -alto / 2 + 4, ancho, alto, 12);
+
+    // Fondo y borde
+    if (fuerte) {
+        let pulso = 3 + sin(frameCount * 0.08);          // latido suave del borde
+        fill(encima ? color(160, 82, 30) : color(139, 69, 19));
+        stroke(217, 164, 65);
+        strokeWeight(encima ? 5 : pulso);
+    } else {
+        fill(encima ? color(255, 238, 195) : color(255, 248, 232));
+        if (col !== undefined) stroke(col); else stroke(217, 164, 65);
+        strokeWeight(encima ? 3 : 2);
+    }
+    rect(-ancho / 2, -alto / 2, ancho, alto, 12);
+
+    // Texto
+    noStroke();
+    if (fuerte) fill(255);
+    else if (col !== undefined) fill(col);
+    else fill(100, 50, 20);
+    let y0 = -((lineas.length - 1) * altoLinea) / 2;
+    for (let i = 0; i < lineas.length; i++) text(lineas[i], 0, y0 + i * altoLinea);
+    pop();
+}
+
+// ============================================
+// AYUDAS PARA EL MOUSE (escena de armar el pedido)
+// ============================================
+// Rectángulo de cada producto (mismas medidas que en el dibujo)
+function rectProducto(i) {
+    let cantidad = 4, ancho = 150, alto = 150, espacio = 20;
+    let totalAncho = cantidad * ancho + (cantidad - 1) * espacio;
+    let inicioX = width / 2 - totalAncho / 2;
+    return { x: inicioX + i * (ancho + espacio), y: 190, w: ancho, h: alto };
+}
+
+// Índice del producto que está bajo el mouse (-1 si no hay ninguno)
+function productoBajoMouse() {
+    for (let i = 0; i < 4; i++) {
+        let r = rectProducto(i);
+        if (mouseX >= r.x && mouseX <= r.x + r.w && mouseY >= r.y && mouseY <= r.y + r.h) return i;
+    }
+    return -1;
+}
+
+function mouseSobreBolsa() {
+    return mouseX >= width / 2 - 200 && mouseX <= width / 2 + 200 && mouseY >= 370 && mouseY <= 470;
 }

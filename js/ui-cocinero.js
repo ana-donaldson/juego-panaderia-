@@ -26,93 +26,80 @@ function mostrarInstruccionesCocinero() {
     text("   Completar la receta sin quemar la comida.", x, y + 280);
 
     textAlign(CENTER, CENTER);
-    fill(139, 69, 19);
-    rect(width / 2 - 120, 450, 240, 50, 10);
-    fill(255);
-    textSize(20);
-    text("▶  PRESIONA ENTER", width / 2, 475);
-
-    fill(100);
-    textSize(14);
-    text("(Presiona ENTER para empezar)", width / 2, 530);
+    dibujarAviso("Presione la tecla 'ENTER' para comenzar", width / 2, 480, "fuerte");
 }
 function mostrarInterfazCocinero1() {
-    // --- PANEL IZQUIERDO: Lista de Ingredientes ---
-    fill(255, 255, 255, 220);
-    rect(20, 20, 250, 250, 10);
+    // Título
+    fill(139, 69, 19);
+    textSize(28);
+    text("👨‍🍳 PREPARACIÓN", width / 2, 50);
 
-        // Mostrar Vidas (Arriba a la derecha)
+    // ==========================================
+    // PANEL IZQUIERDO: La Receta
+    // ==========================================
+    fill(255, 255, 255, 220);
+    rect(50, 80, 350, 450, 10);
+
     fill(0);
-    textAlign(RIGHT, TOP);
     textSize(20);
-    text("❤️ Vidas: " + vidasCocinero, width - 30, 30);
-    textAlign(CENTER, CENTER); // Volver a centrar para el resto del código
-    
+    text("Receta: " + recetaActual.nombre, 225, 110);
+
+    // Foto de la receta (Simulada con un rectángulo por ahora)
+    // En mostrarInterfazCocinero1()
+if (imgRecetaActual) {
+    image(imgRecetaActual, 100, 130, 250, 150);
+} else {
+    fill(200); rect(100, 130, 250, 150, 10); // El recuadro gris
+}
+    // Lista de ingredientes necesarios
     fill(0);
-    textSize(18);
-    textAlign(CENTER, CENTER);
-    text("Receta: " + recetaActual.nombre, 145, 45);
+    textSize(16);
+    text("Ingredientes necesarios:", 80, 310);
     
-    textAlign(LEFT, CENTER);
-    textSize(14);
-        let yIng = 80;
+    let yIng = 340;
     for (let i = 0; i < recetaActual.ingredientes.length; i++) {
         let ing = recetaActual.ingredientes[i];
-        
-        // ✅ Verificamos si el ingrediente está en la lista de los que ya pusimos
-        let agregado = ingredientesEnBowl.includes(ing);
+        let agregado = pasoIngrediente > i; // Si ya lo agregó
 
         if (agregado) {
-            fill(0, 150, 0);
-            text("✅ " + ing, 40, yIng);
+            fill(0, 150, 0); // Verde si ya está
+            text("✅ " + ing, 80, yIng);
         } else {
-            fill(100);
-            text("⬜ " + ing, 40, yIng);
+            fill(0);
+            text("⬜ " + ing, 80, yIng);
         }
         yIng += 30;
     }
 
-    if (imgRecetaActual) {
-        image(imgRecetaActual, width / 2 - 60, 20, 120, 80);
-    } else {
-        fill(200);
-        rect(width / 2 - 60, 20, 120, 80, 10);
-        fill(100);
-        textAlign(CENTER, CENTER);
-        textSize(12);
-        text("[Foto]", width / 2, 60);
-    }
-
-    // --- BOWL CENTRAL (Donde caen los ingredientes) ---
-    fill(150, 150, 150);
-    ellipse(width / 2, 200, 150, 100); // El bol
-    fill(100);
-    text("Bowl", width / 2, 200);
-    
-    // --- ABAJO: Mesa de trabajo (horizontal) ---
-    fill(180, 140, 100); // Color madera
-    rect(0, 350, width, 250); // La mesa ocupa todo el ancho abajo
+    // ==========================================
+    // PANEL DERECHO: La Mesa de Ingredientes
+    // ==========================================
+    fill(255, 255, 255, 220);
+    rect(450, 80, 400, 450, 10);
 
     fill(0);
-    textSize(16);
-    textAlign(CENTER, CENTER);
-    text("Mesa de trabajo", width / 2, 380);
+    textSize(18);
+    text("Mesa de trabajo:", 650, 110);
 
-    // Dibujar ingredientes en fila horizontal
-    let inicioX = 100;
-    let anchoCaja = 100;
+    // Dibujar ingredientes disponibles (grilla de 2x4)
+    let inicioX = 480;
+    let inicioY = 150;
+    let anchoCaja = 160;
     let altoCaja = 80;
-    let espacio = 20;
+    let espacioX = 20;
+    let espacioY = 20;
 
     for (let i = 0; i < ingredientesDisponibles.length; i++) {
-        let x = inicioX + i * (anchoCaja + espacio);
-        let y = 450;
+        let col = i % 2;
+        let fil = Math.floor(i / 2);
+        let x = inicioX + col * (anchoCaja + espacioX);
+        let y = inicioY + fil * (altoCaja + espacioY);
 
-        // Resaltar el seleccionado
+        // Resaltar si está seleccionado
         if (i === indiceIngredienteSeleccionado) {
             fill(255, 220, 100);
             stroke(200, 150, 0);
-            strokeWeight(4);
+            strokeWeight(3);
         } else {
             fill(255, 255, 255);
             noStroke();
@@ -120,8 +107,9 @@ function mostrarInterfazCocinero1() {
         rect(x, y, anchoCaja, altoCaja, 10);
         noStroke();
 
+        // Nombre del ingrediente
         fill(0);
-        textSize(14);
+        textSize(16);
         text(ingredientesDisponibles[i], x + anchoCaja / 2, y + altoCaja / 2);
     }
 
@@ -129,13 +117,14 @@ function mostrarInterfazCocinero1() {
     if (mensaje !== "") {
         fill(mensajeColor);
         textSize(18);
-        text(mensaje, width / 2, height - 30);
+        text(mensaje, 650, 480);
     }
 
-    // Instrucciones de teclado
-    fill(255);
-    textSize(14);
-    text("← → Seleccionar  |  ENTER Agregar al Bowl  |  ESPACIO Ir al Horno", width / 2, height - 10);
+    // Instrucciones abajo (destacadas)
+    dibujarAviso([
+        "Presione las teclas '← → ↑ ↓' para seleccionar y 'ENTER' para agregar",
+        "Presione la tecla 'ESPACIO' para ir al horno"
+    ], width / 2, 565, "suave");
 }
 function mostrarInterfazCocinero2() {
     // Título
@@ -210,19 +199,21 @@ function mostrarInterfazCocinero2() {
     // ==========================================
     // INSTRUCCIONES
     // ==========================================
-    fill(100);
-    textSize(14);
     if (!hornoEncendido) {
-        text("← → Ajustar Temp  |  ENTER Encender Horno", width / 2, height - 30);
+        dibujarAviso([
+            "Presione las teclas '← →' para ajustar la temperatura",
+            "Presione la tecla 'ENTER' para encender el horno"
+        ], width / 2, 569, "suave");
     } else {
-        text("¡Cuidado! Presioná ESPACIO justo en la línea verde", width / 2, height - 30);
+        dibujarAviso([
+            "¡Cuidado!",
+            "Presione la tecla 'ESPACIO' justo en la línea verde"
+        ], width / 2, 569, "suave");
     }
 
     // Mensaje (error o acierto)
     if (mensaje !== "") {
-        fill(mensajeColor);
-        textSize(18);
-        text(mensaje, width / 2, 580);
+        dibujarAviso(mensaje, width / 2, 122, "suave", mensajeColor);
     }
 }
 
@@ -279,19 +270,21 @@ function mostrarInterfazCocinero3() {
     fill(255, 200, 0);
     rect(250, 520, map(progreso, 0, 100, 0, 400), 20, 10);
     
+    push();
+    textAlign(LEFT, CENTER);
     fill(0);
     textSize(14);
-    text("Progreso: " + Math.floor(progreso) + "%", width / 2, 560);
+    text("Progreso: " + Math.floor(progreso) + "%", 660, 530);
+    pop();
 
-    // Instrucciones abajo
-    fill(100);
-    textSize(14);
-    text("← → ↑ ↓ Moverse  |  ENTER Pintar  |  ESPACIO Terminar", width / 2, height - 20);
+    // Instrucciones abajo (destacadas)
+    dibujarAviso([
+        "Presione las teclas '← → ↑ ↓' para moverse",
+        "Presione la tecla 'ENTER' para pintar y 'ESPACIO' para terminar"
+    ], width / 2, 569, "suave");
 
     if (mensaje !== "") {
-        fill(mensajeColor);
-        textSize(16);
-        text(mensaje, width / 2, 590);
+        dibujarAviso(mensaje, width / 2, 82, "suave", mensajeColor);
     }
 }
 function mostrarInterfazCocinero4() {
@@ -345,10 +338,11 @@ function mostrarInterfazCocinero4() {
         text(decoracionesDisponibles[i], x + anchoCaja / 2, y + altoCaja / 2);
     }
 
-    // Instrucciones
-    fill(100);
-    textSize(14);
-    text("← → ↑ ↓ Seleccionar  |  ENTER Confirmar y Entregar", width / 2, height - 30);
+    // Instrucciones (destacadas)
+    dibujarAviso([
+        "Presione las teclas '← → ↑ ↓' para seleccionar la decoración",
+        "Presione la tecla 'ENTER' para confirmar y entregar"
+    ], width / 2, 569, "suave");
 
     if (mensaje !== "") {
         fill(mensajeColor);
