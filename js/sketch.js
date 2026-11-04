@@ -32,9 +32,9 @@ let clienteEnojado = false;
 let bolsa = [];
 let productoSeleccionado = 0;
 let animaciones = [];
+let arrastrando = null;   // producto que se está arrastrando con el mouse
 
 // Variables del Cocinero
-let vidasCocinero = 3;
 let recetaActual = null;
 let pasoIngrediente = 0;
 let hornoEncendido = false;
@@ -44,7 +44,6 @@ let brilloAplicado = false;
 let indiceIngredienteSeleccionado = 0;
 let productosPintados = [];
 let indiceProductoPintar = 0;
-let ingredientesEnBowl = []; // Guarda los ingredientes que el jugador ya puso
 
 // ✅ Variables nuevas para la Escena 4
 let indiceDecoracionSeleccionada = 0;
@@ -79,6 +78,7 @@ function setup() {
 }
 
 function draw() {
+    cursor(ARROW);
     // ✅ LÓGICA DEL HORNO
     if (estado === "cocinero_escena2" && hornoEncendido) {
         let velocidad = map(temperaturaHorno, 0, 300, 0.5, 2.5); 
@@ -196,8 +196,6 @@ function keyPressed() {
                 productosPintados = []; 
                 indiceProductoPintar = 0;
                 indiceDecoracionSeleccionada = 0;
-                ingredientesEnBowl = [];
-                vidasCocinero = 3;
                 mensaje = "";
             }
         }
@@ -206,7 +204,7 @@ function keyPressed() {
         }
     }
 
-        // ==========================================
+    // ==========================================
     // MODO COCINERO: ESCENA 1 (Preparación)
     // ==========================================
     if (estado === "cocinero_escena1") {
@@ -215,52 +213,39 @@ function keyPressed() {
             return;
         }
 
-        // Solo flechas izquierda y derecha
         if (keyCode === LEFT_ARROW) {
             indiceIngredienteSeleccionado = (indiceIngredienteSeleccionado - 1 + ingredientesDisponibles.length) % ingredientesDisponibles.length;
         }
         if (keyCode === RIGHT_ARROW) {
             indiceIngredienteSeleccionado = (indiceIngredienteSeleccionado + 1) % ingredientesDisponibles.length;
         }
+        if (keyCode === UP_ARROW) {
+            indiceIngredienteSeleccionado = (indiceIngredienteSeleccionado - 2 + ingredientesDisponibles.length) % ingredientesDisponibles.length;
+        }
+        if (keyCode === DOWN_ARROW) {
+            indiceIngredienteSeleccionado = (indiceIngredienteSeleccionado + 2) % ingredientesDisponibles.length;
+        }
 
         if (keyCode === ENTER || key === 'Enter') {
             let ingSeleccionado = ingredientesDisponibles[indiceIngredienteSeleccionado];
-            
-            // 1. Verificar si el ingrediente pertenece a la receta
-            let estaEnReceta = recetaActual.ingredientes.includes(ingSeleccionado);
+            let ingNecesario = recetaActual.ingredientes[pasoIngrediente];
 
-            if (!estaEnReceta) {
-                // Se equivocó feo (puso algo que no va)
-                vidasCocinero--;
-                mensaje = "❌ ¡Ese ingrediente no va en la receta! Vidas: " + vidasCocinero;
-                mensajeColor = color(200, 0, 0);
-                
-                if (vidasCocinero <= 0) {
-                    setTimeout(() => { estado = "fin"; mensaje = ""; }, 2000);
+            if (ingSeleccionado === ingNecesario) {
+                mensaje = "✅ ¡Bien! Agregaste " + ingSeleccionado;
+                mensajeColor = color(0, 150, 0);
+                pasoIngrediente++;
+
+                if (pasoIngrediente >= recetaActual.ingredientes.length) {
+                    mensaje = "✅ ¡Todo listo! Presiona ESPACIO para ir al horno.";
                 }
             } else {
-                // 2. Verificar si ya lo había puesto antes
-                if (ingredientesEnBowl.includes(ingSeleccionado)) {
-                    mensaje = "❌ Ya agregaste " + ingSeleccionado;
-                    mensajeColor = color(200, 0, 0);
-                } else {
-                    // ¡Es correcto! Lo agregamos
-                    ingredientesEnBowl.push(ingSeleccionado);
-                    pasoIngrediente++; // (Podés dejar esta línea o borrarla, ya no se usa mucho)
-                    mensaje = "✅ ¡Bien! Agregaste " + ingSeleccionado;
-                    mensajeColor = color(0, 150, 0);
-
-                    // Si ya puso todos los ingredientes de la receta
-                    if (ingredientesEnBowl.length === recetaActual.ingredientes.length) {
-                        mensaje = "✅ ¡Todo listo! Presiona ESPACIO para ir al horno.";
-                    }
-                }
+                mensaje = "❌ Ese no es el siguiente ingrediente.";
+                mensajeColor = color(200, 0, 0);
             }
         }
 
         if (key === ' ') {
-            // ✅ CAMBIO ACÁ: Ahora revisa si el bowl tiene todos los ingredientes
-            if (ingredientesEnBowl.length === recetaActual.ingredientes.length) {
+            if (pasoIngrediente >= recetaActual.ingredientes.length) {
                 estado = "cocinero_escena2"; 
                 mensaje = "";
                 temperaturaHorno = 0;
@@ -272,6 +257,7 @@ function keyPressed() {
             }
         }
     }
+
     // ==========================================
     // MODO COCINERO: ESCENA 2 (Horno)
     // ==========================================
@@ -505,6 +491,43 @@ function keyPressed() {
             estado = "menu";
         }
         if (key === 'm' || key === 'M') estado = "menu";
+    }
+}
+
+// ============================================
+// EVENTOS DEL MOUSE (escena de armar el pedido)
+// ============================================
+// Clic sobre un producto  -> lo agrega a la bolsa
+// Arrastrar a la bolsa    -> lo agrega a la bolsa
+function mousePressed() {
+    if (estado === "cajero_escena3") {
+        let i = productoBajoMouse();
+        if (i >= 0) {
+            productoSeleccionado = i;
+            arrastrando = { indice: i, movido: false, xIni: mouseX, yIni: mouseY };
+        }
+    }
+}
+
+function mouseDragged() {
+    if (arrastrando && dist(mouseX, mouseY, arrastrando.xIni, arrastrando.yIni) > 6) {
+        arrastrando.movido = true;
+    }
+}
+
+function mouseReleased() {
+    if (!arrastrando) return;
+    let a = arrastrando;
+    arrastrando = null;
+    if (estado !== "cajero_escena3") return;
+
+    if (!a.movido) {
+        agregarProductoALaBolsa(a.indice);                        // clic simple
+    } else if (mouseSobreBolsa()) {
+        agregarProductoALaBolsa(a.indice, mouseX - 50, mouseY - 40); // arrastrar y soltar
+    } else {
+        mensaje = "Soltá el producto sobre la bolsa";
+        mensajeColor = color(200, 100, 0);
     }
 }
 
