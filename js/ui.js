@@ -1,4 +1,3 @@
-
 function dibujarFondo() {
     background(245, 235, 220);
 
@@ -33,8 +32,8 @@ function dibujarMostradorFormas() {
     fill(100, 70, 40);
     ellipse(width / 2, height - 100, 10, 10);
 }
-
-function mostrarMenu() {
+function mostrarMenu(modoSeleccionado) {
+    // Título
     fill(100, 50, 20);
     textSize(50);
     text("🥖 PANADERÍA", width / 2 + 3, 123);
@@ -47,50 +46,43 @@ function mostrarMenu() {
     fill(80, 40, 10);
     text('"Del Horno a la Mano"', width / 2, 170);
 
+    // OPCIÓN 1: MODO CAJERO
+    let yCajero = 280;
+    if (modoSeleccionado === "cajero") {
+        fill(255, 220, 100); // Brillo
+        stroke(200, 150, 0);
+        strokeWeight(4);
+    } else {
+        fill(255, 255, 255, 150);
+        noStroke();
+    }
+    rect(width / 2 - 200, yCajero - 30, 400, 60, 10);
+    noStroke();
     fill(0);
     textSize(22);
-    text('Presione la Tecla "1" → Modo Cajero', width / 2, 280);
-    text('Presione la Tecla "2" → Modo Cocinero', width / 2, 330);
+    text("Modo Cajero", width / 2, yCajero);
 
-    fill(150);
-    textSize(14);
-    text("v2.0 - Modo Cajero Mejorado", width / 2, 480);
-}
-
-// PANTALLA DE INSTRUCCIONES
-
-function mostrarInstrucciones() {
-    fill(139, 69, 19);
-    textSize(36);
-    text("🎮 INSTRUCCIONES", width / 2, 70);
-
-    fill(255, 255, 255, 230);
-    rect(width / 2 - 300, 110, 600, 320, 15);
-
+    // OPCIÓN 2: MODO COCINERO
+    let yCocinero = 360;
+    if (modoSeleccionado === "cocinero") {
+        fill(255, 220, 100); // Brillo
+        stroke(200, 150, 0);
+        strokeWeight(4);
+    } else {
+        fill(255, 255, 255, 150);
+        noStroke();
+    }
+    rect(width / 2 - 200, yCocinero - 30, 400, 60, 10);
+    noStroke();
     fill(0);
-    textSize(18);
-    textAlign(LEFT, TOP);
+    textSize(22);
+    text("Modo Cocinero", width / 2, yCocinero);
 
-    let x = width / 2 - 260;
-    let y = 130;
-
-    text("📌 Tu tarea:", x, y);
-    text("   Atender a los clientes y darles el vuelto correcto.", x, y + 30);
-
-    text("⌨️ CONTROLES:", x, y + 80);
-    text("   Números (0-9)  → Escribir el vuelto", x, y + 110);
-    text("   . (Punto)      → Punto decimal", x, y + 140);
-    text("   ENTER          → Confirmar el vuelto", x, y + 170);
-    text("   BACKSPACE      → Borrar el último dígito", x, y + 200);
-    text("   ESC            → Volver al menú", x, y + 230);
-
-    text("🎯 OBJETIVO:", x, y + 275);
-    text("   Atender a 5 clientes sin perder todas las vidas.", x, y + 305);
-
-    textAlign(CENTER, CENTER);
-    dibujarAviso("Presione la tecla 'ENTER' para comenzar", width / 2, 480, "fuerte");
+    // Instrucción
+    fill(150);
+    textSize(16);
+    text("Usa ↑ ↓ para elegir y ENTER para jugar", width / 2, 480);
 }
-
 // INTERFAZ DEL CAJERO
 
 function mostrarInterfazCajero() {
@@ -217,7 +209,7 @@ function mostrarFin() {
     if (modoSeleccionado === "cocinero") {
         text("🎉 ¡DELICIOSO!", width / 2, 200);
         text("Preparaste " + recetaActual.nombre, width / 2, 250);
-        text("Con: " + decoracionElegida, width / 2, 290);
+        if (decoracionElegida !== "") text("Con: " + decoracionElegida, width / 2, 290);
         textSize(18);
         text("¡Sos un maestro pastelero!", width / 2, 350);
     } 
@@ -229,7 +221,7 @@ function mostrarFin() {
         text("💀 GAME OVER", width / 2, 200);
         // ... (tu código del cajero)
     } else {
-        text("🎉 ¡PANADERO EXCEPCIONAL!", width / 2, 180);
+        text("🎉 ¡Has atendido a todos los clientes de esta hora! ¡PANADERO EXCEPCIONAL!", width / 2, 180);
         // ... (tu código del cajero)
     }
 
@@ -278,7 +270,7 @@ function mostrarInterfazEscena1() {
         text("💵 Paga con: $" + pagoCliente, width / 2, 160);
 
         // Instrucción (destacada)
-        dibujarAviso("Presione la tecla 'ESPACIO' para armar el pedido", width / 2, 245, "fuerte");
+        dibujarCartelInteractivo();
     } else if (clienteAnimando) {
         fill(100);
         textSize(20);
@@ -323,11 +315,11 @@ function mostrarInterfazEscena3() {
     }
     text(pedidoTexto, width / 2, 160);
 
-    // Productos en 4 columnas
-    let productosMostrar = productos.slice(0, 4);
-    let anchoProducto = 150;
+    // Productos en una sola fila
+    let productosMostrar = productos;
+    let anchoProducto = 132;
     let altoProducto = 150;
-    let espacio = 20;
+    let espacio = 10;
     let totalAncho = productosMostrar.length * anchoProducto + (productosMostrar.length - 1) * espacio;
     let inicioX = width / 2 - totalAncho / 2;
 
@@ -350,10 +342,15 @@ function mostrarInterfazEscena3() {
         // ✅ IMAGEN DEL PRODUCTO (desde el objeto imagenesProductos)
         let img = imagenesProductos[productosMostrar[i].nombre];
         if (img) {
-            image(img, x + 15, y + 5, 120, 90);
+            image(img, x + 10, y + 5, 112, 84);
         } else {
             fill(200, 180, 140);
             ellipse(x + anchoProducto / 2, y + 50, 80, 80);
+            if (productosMostrar[i].emoji) {   // sin foto: se muestra el emoji
+                fill(0);
+                textSize(40);
+                text(productosMostrar[i].emoji, x + anchoProducto / 2, y + 50);
+            }
         }
 
         // Nombre del producto
@@ -412,6 +409,7 @@ function mostrarInterfazEscena3() {
                 else if (nombre === "Factura") nombreMostrar = "Facturas";
                 else if (nombre === "Medialuna") nombreMostrar = "Medialunas";
                 else if (nombre === "Galleta") nombreMostrar = "Galletas";
+                else if (nombre === "Alfajor") nombreMostrar = "Alfajores";
                 else nombreMostrar = nombre + "s";
             }
 
@@ -419,26 +417,35 @@ function mostrarInterfazEscena3() {
             yTexto += 20; // Bajar a la siguiente línea
         }
     }
-    // Mensaje (cartel suave, del color del mensaje)
-    if (mensaje !== "") {
-        dibujarAviso(mensaje, width / 2, 497, "suave", mensajeColor);
+    // Cartel de aviso (dura 5 s y se difumina en 2 s) o, con el pedido armado
+    // y sin cartel en pantalla, el botón "Ir a cobrar" en ese mismo lugar
+    if (botonCobrarVisible()) {
+        dibujarAviso("Ir a cobrar", width / 2, 497, "fuerte");
+    } else if (mensaje !== "") {
+        dibujarAviso(mensaje, width / 2, 497, "suave", mensajeColor, alfaMensaje());
     }
 
     // Instrucciones (destacadas, una línea debajo de la otra)
-    dibujarAviso([
-        "Presione las teclas '← →' para seleccionar un producto y 'ENTER' para agregarlo",
-        "Presione la tecla 'ESPACIO' para ir a cobrar"
-    ], width / 2, 563, "suave");
+    dibujarCartelInteractivo();
 
     // Producto que se está arrastrando con el mouse
     if (arrastrando && arrastrando.movido) {
-        let imgArrastre = imagenesProductos[productos[arrastrando.indice].nombre];
-        if (imgArrastre) image(imgArrastre, mouseX - 60, mouseY - 45, 120, 90);
+        let prodArrastre = productos[arrastrando.indice];
+        let imgArrastre = imagenesProductos[prodArrastre.nombre];
+        if (imgArrastre) {
+            image(imgArrastre, mouseX - 60, mouseY - 45, 120, 90);
+        } else if (prodArrastre.emoji) {   // sin foto: se arrastra el emoji
+            push();
+            fill(0);
+            textSize(50);
+            text(prodArrastre.emoji, mouseX, mouseY);
+            pop();
+        }
     }
 
     // Cursor de mano sobre los productos
     if (arrastrando && arrastrando.movido) cursor('grabbing');
-    else if (productoBajoMouse() >= 0) cursor(HAND);
+    else if (productoBajoMouse() >= 0 || (botonCobrarVisible() && mouseSobreBotonCobrar())) cursor(HAND);
 
     // Dibujar animaciones de productos volando a la bolsa
     dibujarAnimaciones();
@@ -493,7 +500,7 @@ function mostrarInterfazEscena2() {
 
         fill(100);
         textSize(14);
-        text("Escribí el vuelto y presioná ENTER", width / 2, 395);
+        text("Escribí el vuelto y presioná ENTER o el botón", width / 2, 395);
     } else if (vueltoCorrecto === 0) {
         fill(255, 255, 255, 220);
         rect(width / 2 - 200, 290, 400, 80, 10);
@@ -506,10 +513,14 @@ function mostrarInterfazEscena2() {
 
     // Mensaje de resultado
     if (mensaje !== "") {
-        fill(mensajeColor);
+        let alfa = alfaMensaje();   // los avisos temporales se difuminan solos
+        fill(red(mensajeColor), green(mensajeColor), blue(mensajeColor), alfa);
         textSize(16);
-        text(mensaje, width / 2, 460);
+        text(mensaje, width / 2, 505);
     }
+
+    // Botón "Dar vuelto" (clic = tecla ENTER)
+    dibujarCartelInteractivo();
 
     // Instrucciones
     fill(100);
@@ -528,32 +539,29 @@ function agregarProductoALaBolsa(indice, xOrigen, yOrigen) {
     // Verificar si el producto está en el pedido y cuántos faltan
     let pedidoItem = pedidoActual.find(p => p.producto === producto.nombre);
     if (!pedidoItem) {
-        mensaje = "❌ Ese producto no está en el pedido";
-        mensajeColor = color(200, 0, 0);
+        mostrarAvisoError("❌ Ese producto no está en el pedido");
         return;
     }
 
     // Contar cuántos de ese producto ya están en la bolsa
     let enBolsa = bolsa.filter(p => p.nombre === producto.nombre).length;
     if (enBolsa >= pedidoItem.cantidad) {
-        mensaje = "❌ Ya agregaste todos los " + producto.nombre;
-        mensajeColor = color(200, 0, 0);
+        mostrarAvisoError("❌ Ya agregaste todos los " + producto.nombre);
         return;
     }
 
    // ✅ Agregar a la bolsa
     bolsa.push(producto);
-    mensaje = "✅ " + producto.nombre + " agregado";
-    mensajeColor = color(0, 150, 0);
+    mostrarMensajeTemporal("✅ " + producto.nombre + " agregado", color(0, 150, 0));
 
     // ✅ CREAR ANIMACIÓN
     // Calcular posición inicial (donde está el producto)
-    let productosMostrar = productos.slice(0, 4);
-    let anchoProducto = 150;
-    let espacio = 20;
+    let productosMostrar = productos;
+    let anchoProducto = 132;
+    let espacio = 10;
     let totalAncho = productosMostrar.length * anchoProducto + (productosMostrar.length - 1) * espacio;
     let inicioX = width / 2 - totalAncho / 2;
-    let xInicial = (xOrigen !== undefined) ? xOrigen : inicioX + indice * (anchoProducto + espacio) + 15;
+    let xInicial = (xOrigen !== undefined) ? xOrigen : inicioX + indice * (anchoProducto + espacio) + 10;
     let yInicial = (yOrigen !== undefined) ? yOrigen : 190 + 5;
 
     // Posición final (la bolsa)
@@ -563,6 +571,7 @@ function agregarProductoALaBolsa(indice, xOrigen, yOrigen) {
     // Crear la animación
     animaciones.push({
         img: imagenesProductos[producto.nombre],
+        emoji: producto.emoji,
         x: xInicial,
         y: yInicial,
         xInicial: xInicial,
@@ -588,6 +597,12 @@ function dibujarAnimaciones() {
         tint(255, alpha);
         if (anim.img) {
             image(anim.img, anim.x, anim.y, 100, 80);
+        } else if (anim.emoji) {   // sin foto: vuela el emoji
+            push();
+            fill(0, alpha);
+            textSize(50);
+            text(anim.emoji, anim.x + 50, anim.y + 40);
+            pop();
         }
         noTint();
         
@@ -604,21 +619,22 @@ function dibujarAnimaciones() {
 // lineas: un texto o una lista de textos (uno debajo del otro)
 // nivel:  "fuerte" (llamado principal) o "suave" (recordatorio o mensaje)
 // col:    color opcional del borde y del texto (nivel "suave")
-function dibujarAviso(lineas, cx, cy, nivel, col) {
-    if (!Array.isArray(lineas)) lineas = [lineas];
+// alfa:   opcional, 0-255 (255 = totalmente visible). Sirve para el difuminado.
+function dibujarAviso(lineas, cx, cy, nivel, col, alfa) {
+    if (alfa === undefined) alfa = 255;
+    if (alfa <= 0) return;
+    if (!Array.isArray(lineas)) lineas = String(lineas).split("\n");
     let fuerte = (nivel === "fuerte");
     let tam = fuerte ? 20 : 14;
     let altoLinea = tam + 6;
+    let medidas = medirAviso(lineas, nivel);
+    let ancho = medidas.ancho;
+    let alto = medidas.alto;
 
     push();
     textStyle(BOLD);
     textSize(tam);
     textAlign(CENTER, CENTER);
-
-    let ancho = 0;
-    for (let i = 0; i < lineas.length; i++) ancho = Math.max(ancho, textWidth(lineas[i]));
-    ancho += fuerte ? 60 : 36;
-    let alto = lineas.length * altoLinea + 12 + (fuerte ? 10 : 0);
 
     // ¿El mouse está encima?
     let encima = mouseX > cx - ancho / 2 && mouseX < cx + ancho / 2 &&
@@ -629,30 +645,67 @@ function dibujarAviso(lineas, cx, cy, nivel, col) {
 
     // Sombra
     noStroke();
-    fill(80, 40, 10, 50);
+    fill(80, 40, 10, 50 * alfa / 255);
     rect(-ancho / 2 + 3, -alto / 2 + 4, ancho, alto, 12);
 
     // Fondo y borde
     if (fuerte) {
         let pulso = 3 + sin(frameCount * 0.08);          // latido suave del borde
-        fill(encima ? color(160, 82, 30) : color(139, 69, 19));
-        stroke(217, 164, 65);
+        if (encima) fill(160, 82, 30, alfa); else fill(139, 69, 19, alfa);
+        stroke(217, 164, 65, alfa);
         strokeWeight(encima ? 5 : pulso);
     } else {
-        fill(encima ? color(255, 238, 195) : color(255, 248, 232));
-        if (col !== undefined) stroke(col); else stroke(217, 164, 65);
+        if (encima) fill(255, 238, 195, alfa); else fill(255, 248, 232, alfa);
+        if (col !== undefined) stroke(red(col), green(col), blue(col), alfa);
+        else stroke(217, 164, 65, alfa);
         strokeWeight(encima ? 3 : 2);
     }
     rect(-ancho / 2, -alto / 2, ancho, alto, 12);
 
     // Texto
     noStroke();
-    if (fuerte) fill(255);
-    else if (col !== undefined) fill(col);
-    else fill(100, 50, 20);
+    if (fuerte) fill(255, alfa);
+    else if (col !== undefined) fill(red(col), green(col), blue(col), alfa);
+    else fill(100, 50, 20, alfa);
     let y0 = -((lineas.length - 1) * altoLinea) / 2;
     for (let i = 0; i < lineas.length; i++) text(lineas[i], 0, y0 + i * altoLinea);
     pop();
+}
+
+// ============================================
+// MENSAJES TEMPORALES (5 s visibles + 2 s de difuminado)
+// ============================================
+const MENSAJE_DURACION = 5000;   // ms que el cartel se ve completo
+const MENSAJE_DIFUMINADO = 3000; // ms que tarda en desaparecer
+// Avisos de equivocación: duran 5 s EN TOTAL (2 s completos + 3 s de difuminado)
+const AVISO_ERROR_TOTAL = 5000;
+
+// Muestra un mensaje que desaparece solo.
+// esError = true -> aviso de equivocación (5 s en total, incluyendo el difuminado)
+function mostrarMensajeTemporal(texto, col, esError) {
+    mensaje = texto;
+    mensajeColor = col;
+    let visible = esError ? AVISO_ERROR_TOTAL - MENSAJE_DIFUMINADO : MENSAJE_DURACION;
+    mensajeTemp = { texto: texto, inicio: millis(), visible: visible };
+}
+
+// Aviso de equivocación (rojo por defecto): 5 s en total, 2 s de difuminado
+function mostrarAvisoError(texto, col) {
+    mostrarMensajeTemporal(texto, col !== undefined ? col : color(200, 0, 0), true);
+}
+
+// Transparencia actual del mensaje (255 = visible, 0 = ya desapareció).
+// Los mensajes que no son temporales siempre devuelven 255.
+function alfaMensaje() {
+    if (mensajeTemp === null || mensaje !== mensajeTemp.texto) return 255;
+    let t = millis() - mensajeTemp.inicio;
+    if (t < mensajeTemp.visible) return 255;
+    if (t >= mensajeTemp.visible + MENSAJE_DIFUMINADO) {
+        mensaje = "";
+        mensajeTemp = null;
+        return 0;
+    }
+    return 255 * (1 - (t - mensajeTemp.visible) / MENSAJE_DIFUMINADO);
 }
 
 // ============================================
@@ -660,7 +713,7 @@ function dibujarAviso(lineas, cx, cy, nivel, col) {
 // ============================================
 // Rectángulo de cada producto (mismas medidas que en el dibujo)
 function rectProducto(i) {
-    let cantidad = 4, ancho = 150, alto = 150, espacio = 20;
+    let cantidad = productos.length, ancho = 132, alto = 150, espacio = 10;
     let totalAncho = cantidad * ancho + (cantidad - 1) * espacio;
     let inicioX = width / 2 - totalAncho / 2;
     return { x: inicioX + i * (ancho + espacio), y: 190, w: ancho, h: alto };
@@ -668,7 +721,7 @@ function rectProducto(i) {
 
 // Índice del producto que está bajo el mouse (-1 si no hay ninguno)
 function productoBajoMouse() {
-    for (let i = 0; i < 4; i++) {
+    for (let i = 0; i < productos.length; i++) {
         let r = rectProducto(i);
         if (mouseX >= r.x && mouseX <= r.x + r.w && mouseY >= r.y && mouseY <= r.y + r.h) return i;
     }
@@ -677,4 +730,148 @@ function productoBajoMouse() {
 
 function mouseSobreBolsa() {
     return mouseX >= width / 2 - 200 && mouseX <= width / 2 + 200 && mouseY >= 370 && mouseY <= 470;
+}
+
+// Botón "Ir a cobrar": aparece con el pedido armado, cuando ya no hay un
+// cartel temporal ocupando su lugar
+function botonCobrarVisible() {
+    if (!bolsaCompleta()) return false;
+    let cartelTemporal = mensajeTemp !== null && mensaje === mensajeTemp.texto;
+    return !cartelTemporal;
+}
+
+function mouseSobreBotonCobrar() {
+    return mouseSobreAviso("Ir a cobrar", width / 2, 497, "fuerte");
+}
+
+// ============================================
+// CARTELES INTERACTIVOS (equivalen a una tecla)
+// ============================================
+// Tamaño de un cartel (las mismas medidas que usa dibujarAviso)
+function medirAviso(lineas, nivel) {
+    if (!Array.isArray(lineas)) lineas = String(lineas).split("\n");
+    let fuerte = (nivel === "fuerte");
+    push();
+    textStyle(BOLD);
+    textSize(fuerte ? 20 : 14);
+    let ancho = 0;
+    for (let i = 0; i < lineas.length; i++) ancho = Math.max(ancho, textWidth(lineas[i]));
+    pop();
+    ancho += fuerte ? 60 : 36;
+    let alto = lineas.length * ((fuerte ? 20 : 14) + 6) + 12 + (fuerte ? 10 : 0);
+    return { ancho: ancho, alto: alto };
+}
+
+function mouseSobreAviso(lineas, cx, cy, nivel) {
+    let m = medirAviso(lineas, nivel);
+    return mouseX > cx - m.ancho / 2 && mouseX < cx + m.ancho / 2 &&
+           mouseY > cy - m.alto / 2 && mouseY < cy + m.alto / 2;
+}
+
+// Cartel interactivo de la pantalla actual (o null si no hay):
+// { lineas, cx, cy, nivel, col, alfa, accion }
+// "accion" es la MISMA función que ejecuta la tecla correspondiente.
+function cartelInteractivo() {
+    if (estado === "instrucciones") {
+        return { lineas: "Haz click aquí o presiona la tecla ENTER para comenzar",
+                 cx: width / 2, cy: 480, nivel: "fuerte", accion: comenzarPartida };
+    }
+    if (estado === "cajero_escena1") {
+        if (!(clienteVisible && !clienteAnimando)) return null;
+        return { lineas: "Haz click aquí o presiona la tecla ESPACIO para comenzar el pedido",
+                 cx: width / 2, cy: 245, nivel: "fuerte", accion: irAArmarPedido };
+    }
+    if (estado === "cajero_escena2") {
+        if (mostrandoResultado || !(vueltoCorrecto > 0)) return null;
+        return { lineas: "Dar vuelto", cx: width / 2, cy: 445, nivel: "fuerte", accion: confirmarVuelto };
+    }
+    if (estado === "cajero_escena3") {
+        return { lineas: [
+                    "Presione las teclas '← →' para seleccionar un producto y 'ENTER' para agregarlo",
+                    "Haz click aquí o presiona la tecla 'ESPACIO' para ir a cobrar"
+                 ], cx: width / 2, cy: 563, nivel: "suave", accion: irACobrar };
+    }
+    if (estado === "cocinero_escena1") {
+        if (pasoIngrediente >= recetaActual.ingredientes.length) {
+            return { lineas: "¡Todo listo! Haz click aquí o presiona la tecla ESPACIO para ir al horno",
+                     cx: width / 2, cy: 565, nivel: "fuerte", accion: irAlHorno };
+        }
+        return { lineas: [
+                    "Presione las teclas '← → ↑ ↓' y 'ENTER', o haga clic en un ingrediente, para agregarlo",
+                    "Haz click aquí o presiona la tecla 'ESPACIO' para ir al horno"
+                 ], cx: width / 2, cy: 565, nivel: "suave", accion: irAlHorno };
+    }
+    if (estado === "cocinero_escena2") {
+        if (coccionExitosa) {
+            return { lineas: "Haz click aquí o presiona la tecla ESPACIO para " + siguienteEtapa("cocinero_escena2").texto,
+                     cx: width / 2, cy: 569, nivel: "fuerte", accion: avanzarDesdeHorno };
+        }
+        if (coccionFallida) {
+            let alfa = alfaMensaje();
+            if (mensaje === "" || alfa <= 0) return null;
+            return { lineas: mensaje, cx: width / 2, cy: 122, nivel: "suave",
+                     col: mensajeColor, alfa: alfa, accion: reintentarCoccion };
+        }
+        return null;
+    }
+    if (estado === "cocinero_escena3") {
+        if (productosPintados.length === 6) {
+            return { lineas: "¡Todo pintado! Haz click aquí o presiona la tecla ESPACIO para " + siguienteEtapa("cocinero_escena3").texto,
+                     cx: width / 2, cy: 569, nivel: "fuerte", accion: terminarPintado };
+        }
+        return { lineas: [
+                    "Presione las teclas '← → ↑ ↓' y 'ENTER', o haga clic en una pieza, para pintarla",
+                    "Haz click aquí o presiona la tecla 'ESPACIO' para terminar"
+                 ], cx: width / 2, cy: 569, nivel: "suave", accion: terminarPintado };
+    }
+    if (estado === "cocinero_escena4") {
+        if (decoracionesElegidas.length >= decoracionesRequeridas.length) {
+            return { lineas: "¡Decoración lista! Haz click aquí o presiona la tecla ESPACIO para entregar",
+                     cx: width / 2, cy: 569, nivel: "fuerte", accion: entregarProducto };
+        }
+        return { lineas: [
+                    "Presione las teclas '← → ↑ ↓' y 'ENTER', o haga clic en una decoración, para agregarla",
+                    "Haz click aquí o presiona la tecla 'ESPACIO' para entregar"
+                 ], cx: width / 2, cy: 569, nivel: "suave", accion: entregarProducto };
+    }
+    return null;
+}
+
+// Dibuja el cartel interactivo actual (con manito al pasar el mouse)
+function dibujarCartelInteractivo() {
+    let c = cartelInteractivo();
+    if (!c) return;
+    dibujarAviso(c.lineas, c.cx, c.cy, c.nivel, c.col, c.alfa);
+    if (mouseSobreAviso(c.lineas, c.cx, c.cy, c.nivel)) cursor(HAND);
+}
+function mostrarInstrucciones() {
+    fill(139, 69, 19);
+    textSize(36);
+    text("🎮 INSTRUCCIONES", width / 2, 70);
+
+    fill(255, 255, 255, 230);
+    rect(width / 2 - 300, 110, 600, 320, 15);
+
+    fill(0);
+    textSize(18);
+    textAlign(LEFT, TOP);
+
+    let x = width / 2 - 260;
+    let y = 130;
+
+    text("📌 Tu tarea:", x, y);
+    text("   Atender a los clientes y darles el vuelto.", x, y + 30);
+
+    text("⌨️ CONTROLES:", x, y + 80);
+    text("   Números (0-9)  → Escribir el vuelto", x, y + 110);
+    text("   . (Punto)      → Punto decimal", x, y + 140);
+    text("   ENTER          → Confirmar el vuelto", x, y + 170);
+    text("   BACKSPACE      → Borrar el último dígito", x, y + 200);
+    text("   ESC            → Volver al menú", x, y + 230);
+
+    text("🎯 OBJETIVO:", x, y + 275);
+    text("   Atender a 5 clientes.", x, y + 305);
+
+    textAlign(CENTER, CENTER);
+    dibujarCartelInteractivo(); // Usa los carteles de Coro
 }

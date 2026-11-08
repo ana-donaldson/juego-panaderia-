@@ -12,11 +12,10 @@ function cargarCliente(indice) {
  // ✅ CONTADOR: incrementa apenas llega el cliente
     clientesAtendidos = indice + 1;
     
-    let cliente = clientes[indice];
     clienteActual = indice;
-    pedidoActual = cliente.pedido;
+    pedidoActual = generarPedidoAleatorio();            // 🎲 pedido al azar
     totalCorrecto = calcularTotal(pedidoActual);
-    pagoCliente = cliente.pago;
+    pagoCliente = generarPagoAleatorio(totalCorrecto);  // 🎲 pago al azar
     vueltoCorrecto = Math.round((pagoCliente - totalCorrecto) * 100) / 100;
 
     inputVuelto = "";
@@ -37,14 +36,28 @@ function calcularTotal(pedido) {
     return Math.round(total * 100) / 100;
 }
 
+// Confirma el vuelto escrito (tecla ENTER o botón "Dar vuelto"): mismas validaciones
+function confirmarVuelto() {
+    if (mostrandoResultado || vueltoCorrecto <= 0) return;
+    if (inputVuelto.length === 0) {
+        mostrarAvisoError("❌ Escribí el vuelto primero");
+        return;
+    }
+    let ingresado = parseFloat(inputVuelto);
+    if (!isNaN(ingresado) && ingresado > pagoCliente) {
+        mostrarAvisoError("❌ El vuelto no puede ser mayor a $" + pagoCliente.toFixed(2));
+        return;
+    }
+    verificarVuelto();
+}
+
 function verificarVuelto() {
     if (!clienteVisible) return;
     if (vueltoCorrecto <= 0) return;
 
     let ingresado = parseFloat(inputVuelto);
     if (isNaN(ingresado)) {
-        mensaje = "❌ Ingresá un número válido";
-        mensajeColor = color(200, 0, 0);
+        mostrarAvisoError("❌ Ingresá un número válido");
         return;
     }
 
@@ -141,6 +154,26 @@ function avanzarSinVuelto() {
         clienteActual++;
         cargarCliente(clienteActual);
     }, 2000);
+}
+
+// Pasa de la atención del cliente a armar el pedido (tecla ESPACIO o clic en el cartel)
+function irAArmarPedido() {
+    if (!clienteVisible) return;
+    estado = "cajero_escena3";
+    productoSeleccionado = 0;
+    bolsa = [];
+    mensaje = "";
+}
+
+// Pasa de armar el pedido a la caja (tecla ESPACIO o botón "Ir a cobrar")
+function irACobrar() {
+    if (!bolsaCompleta()) {
+        mostrarAvisoError("❌ Faltan productos en la bolsa");
+        return;
+    }
+    estado = "cajero_escena2";
+    inputVuelto = "";
+    mensaje = "";
 }
 
 function bolsaCompleta() {
