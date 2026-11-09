@@ -48,6 +48,7 @@ let indiceProductoPintar = 0;
 let indiceRecetaSeleccionada = 0;
 let imgRecetaActual = null;
 let imagenesRecetas = {};
+let imagenesPintado = {};   // piezas sin/con huevo: clave "Receta_sin" / "Receta_con"
 
 // Variables Escena 4
 let indiceDecoracionSeleccionada = 0;
@@ -63,6 +64,23 @@ let coccionFallidaDesde = 0;
 let coccionExitosa = false;
 let teclaTempDesde = 0;
 let teclaTempUltimo = 0;
+
+// Temporizador compartido por ambos modos
+let tiempoInicio = 0;               // millis() al empezar la partida
+let tiempoFin = 0;                  // millis() al terminar (0 = todavía corre)
+let temporizadorCorriendo = false;
+let resultadoGuardado = false;      // evita guardar dos veces la misma partida
+
+// Ranking del menú
+let rankingDatos = [];
+let rankingEstado = "vacio";        // "vacio" | "cargando" | "ok" | "error"
+let rankingCargadoEn = 0;           // millis() de la última carga correcta
+let rankingVisibleDesde = 0;        // millis() desde que la tabla se muestra
+let rankingPeticion = 0;            // para ignorar respuestas viejas
+let estadoPrevio = "";
+const RANKING_VISIBLE_MS = 30000;   // la tabla se ve completa
+const RANKING_FADE_MS = 5000;       // y después desaparece gradualmente
+const RANKING_CACHE_MS = 15000;     // no se vuelve a pedir si los datos son más nuevos que esto
 
 // Variables de Imágenes
 let imgCliente;
@@ -100,6 +118,12 @@ function setup() {
     cargarImagenOpcional('assets/productos/alfajor.jpg', imagenesProductos, "Alfajor");
     cargarImagenOpcional('assets/recetas/alfajor.jpg', imagenesRecetas, "Alfajores");
 
+    // ---- Pintado con huevo: una imagen "sin" y otra "con" huevo por receta que lo usa ----
+    for (let n of ["Medialunas", "Tortas", "Facturas"]) {
+        cargarImagenOpcional('assets/huevo/' + n.toLowerCase() + '_sin.png', imagenesPintado, n + "_sin");
+        cargarImagenOpcional('assets/huevo/' + n.toLowerCase() + '_con.png', imagenesPintado, n + "_con");
+    }
+
     createCanvas(900, 600);
     textAlign(CENTER, CENTER);
     textSize(20);
@@ -128,9 +152,22 @@ function draw() {
         reintentarCoccion();
     }
 
+    // Al terminar la partida: se frena el tiempo y se guarda el resultado (una sola vez)
+    if (estado === "fin" && temporizadorCorriendo) {
+        detenerTemporizador();
+        guardarPartidaEnServidor();
+    }
+
+    // Ranking: se pide una sola vez cada vez que se entra al menú
+    if (estado !== estadoPrevio) {
+        if (estado === "menu") iniciarRanking();
+        estadoPrevio = estado;
+    }
+
     if (estado === "menu") {
         dibujarFondo();
         mostrarMenu(modoSeleccionado); // ✅ Le pasamos el modo actual
+        dibujarRanking();
     } else if (estado === "instrucciones") {
         dibujarFondo();
         if (modoSeleccionado === "cajero") {
@@ -167,6 +204,11 @@ function draw() {
         dibujarFondo();
         mostrarFin();
     }
+
+    // Reloj de la partida
+    if (tiempoInicio > 0 && (estado.startsWith("cajero_escena") || estado.startsWith("cocinero_escena") || estado === "fin")) {
+        dibujarTemporizador();
+    }
 }
 
 // ============================================
@@ -190,12 +232,71 @@ function dibujarEscenaCajero3() { dibujarFondo(); }
 function dibujarEscenaCajero2() { dibujarFondo(); }
 
 // ============================================
+// TEMPORIZADOR (compartido por Cajero y Cocinero)
+// ============================================
+// Arranca al empezar de verdad una partida (Cajero: ENTER/clic en las instrucciones;
+// Cocinero: al elegir la receta). Las transiciones entre etapas no lo tocan.
+function iniciarTemporizador() {
+    tiempoInicio = millis();
+    tiempoFin = 0;
+    temporizadorCorriendo = true;
+    resultadoGuardado = false;
+}
+
+function detenerTemporizador() {
+    if (!temporizadorCorriendo) return;
+    tiempoFin = millis();
+    temporizadorCorriendo = false;
+}
+
+function segundosTranscurridos() {
+    if (tiempoInicio === 0) return 0;
+    return ((temporizadorCorriendo ? millis() : tiempoFin) - tiempoInicio) / 1000;
+}
+
+// Cocinero: menos tiempo = más puntaje (1000 con 0 s, 500 con 60 s, 333 con 120 s...)
+function calcularPuntajeCocinero() {
+    return Math.round(PUNTOS_COCINERO_MAX * TIEMPO_REFERENCIA_COCINERO / (TIEMPO_REFERENCIA_COCINERO + segundosTranscurridos()));
+}
+
+// ============================================
+// RANKING DEL MENÚ
+// ============================================
+// Pide el top 10 al servidor (una sola vez por visita al menú; si los datos tienen
+// menos de 15 s se reutilizan). No bloquea nada: la tabla aparece cuando llega.
+function iniciarRanking() {
+    if (rankingEstado === "ok" && millis() - rankingCargadoEn < RANKING_CACHE_MS) {
+        rankingVisibleDesde = millis();
+        return;
+    }
+    let id = ++rankingPeticion;
+    rankingEstado = "cargando";
+    rankingVisibleDesde = 0;
+
+    fetch('php/ranking.php')
+        .then(res => res.json())
+        .then(data => {
+            if (id !== rankingPeticion) return;   // llegó una respuesta vieja
+            if (data.success) {
+                rankingDatos = data.ranking;
+                rankingEstado = "ok";
+                rankingCargadoEn = millis();
+                rankingVisibleDesde = millis();
+            } else {
+                rankingEstado = "error";
+            }
+        })
+        .catch(() => { if (id === rankingPeticion) rankingEstado = "error"; });
+}
+
+// ============================================
 // COMENZAR PARTIDA
 // ============================================
 function comenzarPartida() {
     if (modoSeleccionado === "cajero") {
         reiniciarJuego(); 
         cargarCliente(0);
+        iniciarTemporizador();
     } else if (modoSeleccionado === "cocinero") {
         estado = "cocinero_seleccion";
         indiceRecetaSeleccionada = 0;
@@ -436,4 +537,4 @@ function reiniciarJuego() {
     clienteEnojado = false;
     bolsa = [];
     productoSeleccionado = 0;
-}
+}

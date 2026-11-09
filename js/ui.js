@@ -220,8 +220,11 @@ function mostrarFin() {
     } else if (vidas <= 0) {
         text("💀 GAME OVER", width / 2, 200);
         // ... (tu código del cajero)
+    } else if (vidas === 3) {   // 3 = vidas con las que empieza: no se equivocó en ningún vuelto
+        text("🎉 ¡PANADERO EXCEPCIONAL!", width / 2, 180);
+        // ... (tu código del cajero)
     } else {
-        text("🎉 ¡Has atendido a todos los clientes de esta hora! ¡PANADERO EXCEPCIONAL!", width / 2, 180);
+        text("🎉 ¡Has atendido a todos los clientes de esta hora!", width / 2, 180);
         // ... (tu código del cajero)
     }
 
@@ -874,4 +877,67 @@ function mostrarInstrucciones() {
 
     textAlign(CENTER, CENTER);
     dibujarCartelInteractivo(); // Usa los carteles de Coro
+}
+
+// ============================================
+// TEMPORIZADOR Y RANKING (dibujo)
+// ============================================
+// Reloj de la partida (arriba, al centro): cuenta hacia arriba y se congela al terminar
+function dibujarTemporizador() {
+    let seg = Math.floor(segundosTranscurridos());
+    push();
+    textAlign(CENTER, CENTER);
+    textStyle(BOLD);
+    textSize(16);
+    fill(60);
+    text("⏱️ " + Math.floor(seg / 60) + ":" + String(seg % 60).padStart(2, "0"), width / 2, 16);
+    pop();
+}
+
+// Tabla de mejores jugadores del menú: 30 s completa + 5 s de difuminado, y después no se dibuja
+function dibujarRanking() {
+    if (rankingEstado !== "ok" || rankingVisibleDesde === 0) return;
+    let t = millis() - rankingVisibleDesde;
+    if (t >= RANKING_VISIBLE_MS + RANKING_FADE_MS) return;
+    let alfa = t < RANKING_VISIBLE_MS ? 1 : 1 - (t - RANKING_VISIBLE_MS) / RANKING_FADE_MS;
+
+    let x = 665, y = 25, ancho = 225;
+    let filas = Math.max(1, rankingDatos.length);
+    let alto = 52 + filas * 22 + 10;
+
+    push();
+    drawingContext.globalAlpha = alfa;   // la transparencia afecta a toda la tabla (emoji incluido)
+
+    noStroke();
+    fill(80, 40, 10, 50);
+    rect(x + 3, y + 4, ancho, alto, 12);          // sombra
+    fill(255, 248, 232);
+    stroke(217, 164, 65);
+    strokeWeight(2);
+    rect(x, y, ancho, alto, 12);                  // fondo
+    noStroke();
+
+    textStyle(BOLD);
+    textSize(15);
+    textAlign(CENTER, CENTER);
+    fill(139, 69, 19);
+    text("🏆 MEJORES JUGADORES", x + ancho / 2, y + 24);
+
+    textSize(14);
+    fill(100, 50, 20);
+    if (rankingDatos.length === 0) {
+        text("Todavía no hay puntajes", x + ancho / 2, y + 74);
+    }
+    for (let i = 0; i < rankingDatos.length; i++) {
+        let f = rankingDatos[i];
+        let fy = y + 52 + i * 22 + 11;
+        let nombre = String(f.nombre);
+        if (nombre.length > 12) nombre = nombre.substring(0, 11) + "…";
+        textAlign(LEFT, CENTER);
+        text(f.posicion + ".", x + 12, fy);
+        text(nombre, x + 40, fy);
+        textAlign(RIGHT, CENTER);
+        text(f.puntaje, x + ancho - 12, fy);
+    }
+    pop();
 }

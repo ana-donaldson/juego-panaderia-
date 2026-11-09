@@ -152,3 +152,10 @@ function generarPagoAleatorio(total) {
     if (posibles.length === 0) return Math.ceil(total / 10) * 10;
     return posibles[numeroAlAzar(0, posibles.length - 1)];
 }
+
+// ============================================
+// PUNTAJE (el que se guarda y se usa en el ranking)
+// ============================================
+const PUNTOS_POR_VUELTO = 200;           // Cajero: puntos por cada vuelto correcto
+const PUNTOS_COCINERO_MAX = 1000;        // Cocinero: puntaje con tiempo 0
+const TIEMPO_REFERENCIA_COCINERO = 60;   // Cocinero: con este tiempo (en segundos) el puntaje es la mitad

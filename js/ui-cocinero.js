@@ -252,15 +252,18 @@ function mostrarInterfazCocinero3() {
         let x = inicioX + col * 200;
         let y = inicioY + fil * 160;
 
-        // Color de la masa (cambia si ya está pintada)
-        if (productosPintados.includes(i)) {
-            fill(255, 200, 100); // Dorado/Brillante
+        // Imagen de la pieza: sin huevo / con huevo (si todavía no hay imagen, queda el óvalo)
+        let imgPieza = imagenesPintado[recetaActual.nombre + (productosPintados.includes(i) ? "_con" : "_sin")];
+        if (imgPieza) {
+            image(imgPieza, x - 60, y - 40, 120, 80);
         } else {
-            fill(240, 220, 190); // Masa cruda
+            if (productosPintados.includes(i)) {
+                fill(255, 200, 100); // Dorado/Brillante
+            } else {
+                fill(240, 220, 190); // Masa cruda
+            }
+            ellipse(x, y, 120, 80);
         }
-        
-        // Dibujamos la medialuna (por ahora un óvalo)
-        ellipse(x, y, 120, 80);
 
         // Si está seleccionada con el cursor, le ponemos un borde
         if (i === indiceProductoPintar) {
@@ -449,6 +452,7 @@ function iniciarReceta(i) {
     decoracionesRequeridas = recetaActual.necesitaDecoracion ? sortearDecoraciones(recetaActual) : [];
     desplazamientoDecoraciones = 0;
     mensaje = "";
+    iniciarTemporizador();   // el tiempo corre desde que se elige la receta
 }
 
 // ============================================

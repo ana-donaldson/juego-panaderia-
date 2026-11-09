@@ -68,7 +68,7 @@ function verificarVuelto() {
     if (ingresado === correcto) {
         mensaje = "✅ ¡Perfecto! Vuelto exacto de $" + correcto.toFixed(2) + " 🎉";
         mensajeColor = color(0, 150, 0);
-        puntos += 50;
+        puntos += PUNTOS_POR_VUELTO;
         clientesAtendidos++;
         caja = Math.round((caja + totalCorrecto) * 100) / 100;
 
@@ -95,8 +95,7 @@ function verificarVuelto() {
         } else {
             mensaje = "❌ El vuelto era $" + correcto.toFixed(2) + " y le diste $" + ingresado.toFixed(2) + ". Perdiste $" + diferencia.toFixed(2);
             mensajeColor = color(200, 100, 0);
-            puntos -= 10;
-            vidas--;
+                vidas--;
             clienteEnojado = true;
         }
 
@@ -122,7 +121,6 @@ function verificarVuelto() {
 
         mensaje = "❌ El vuelto era $" + correcto.toFixed(2) + " y le diste $" + ingresado.toFixed(2) + ". Le faltaron $" + diferencia.toFixed(2);
         mensajeColor = color(200, 0, 0);
-        puntos -= 15;
         vidas--;
         clienteEnojado = true;
 
@@ -145,7 +143,7 @@ function verificarVuelto() {
 function avanzarSinVuelto() {
     mensaje = "✅ ¡Pago exacto! Cliente feliz 🎉";
     mensajeColor = color(0, 150, 0);
-    puntos += 30;
+    puntos += PUNTOS_POR_VUELTO;   // pago exacto = el vuelto ($0) también está bien dado
     clientesAtendidos++;
     caja = Math.round((caja + totalCorrecto) * 100) / 100;
 
@@ -194,20 +192,33 @@ function bolsaCompleta() {
 // GUARDAR PARTIDA EN EL SERVIDOR
 // ============================================
 function guardarPartidaEnServidor() {
+    if (resultadoGuardado) return;   // una sola vez por partida
+
     let jugador_id = localStorage.getItem('jugador_id');
 
     if (!jugador_id) {
         console.log("No hay jugador logueado. No se guarda la partida.");
         return;
     }
+    resultadoGuardado = true;
 
-    let datos = {
-        jugador_id: parseInt(jugador_id),
-        puntuacion: puntos,
-        modo: 'cajero',
-        clientes_atendidos: clientesAtendidos,
-        caja_final: caja
-    };
+    let datos;
+    if (modoSeleccionado === 'cocinero') {
+        datos = {
+            jugador_id: parseInt(jugador_id),
+            puntuacion: calcularPuntajeCocinero(),
+            modo: 'cocinero',
+            recetas_completadas: 1
+        };
+    } else {
+        datos = {
+            jugador_id: parseInt(jugador_id),
+            puntuacion: puntos,
+            modo: 'cajero',
+            clientes_atendidos: clientesAtendidos,
+            caja_final: caja
+        };
+    }
 
     console.log("Guardando partida:", datos);
 
