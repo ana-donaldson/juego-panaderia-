@@ -278,7 +278,11 @@ function iniciarRanking() {
         .then(data => {
             if (id !== rankingPeticion) return;   // llegó una respuesta vieja
             if (data.success) {
-                rankingDatos = data.ranking;
+                // ✅ ACÁ GUARDAMOS LAS DOS TABLAS SEPARADAS
+                rankingDatos = {
+                    cajero: data.ranking_cajero,
+                    cocinero: data.ranking_cocinero
+                };
                 rankingEstado = "ok";
                 rankingCargadoEn = millis();
                 rankingVisibleDesde = millis();
@@ -537,4 +541,4 @@ function reiniciarJuego() {
     clienteEnojado = false;
     bolsa = [];
     productoSeleccionado = 0;
-}
+}

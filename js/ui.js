@@ -893,51 +893,76 @@ function dibujarTemporizador() {
     text("⏱️ " + Math.floor(seg / 60) + ":" + String(seg % 60).padStart(2, "0"), width / 2, 16);
     pop();
 }
-
 // Tabla de mejores jugadores del menú: 30 s completa + 5 s de difuminado, y después no se dibuja
+// Tabla de mejores jugadores del menú: siempre visible
 function dibujarRanking() {
-    if (rankingEstado !== "ok" || rankingVisibleDesde === 0) return;
-    let t = millis() - rankingVisibleDesde;
-    if (t >= RANKING_VISIBLE_MS + RANKING_FADE_MS) return;
-    let alfa = t < RANKING_VISIBLE_MS ? 1 : 1 - (t - RANKING_VISIBLE_MS) / RANKING_FADE_MS;
-
-    let x = 665, y = 25, ancho = 225;
-    let filas = Math.max(1, rankingDatos.length);
-    let alto = 52 + filas * 22 + 10;
+    // Si todavía no cargaron los datos, no dibujamos nada
+    if (rankingEstado !== "ok") return;
 
     push();
-    drawingContext.globalAlpha = alfa;   // la transparencia afecta a toda la tabla (emoji incluido)
+
+    // Definimos el tamaño de las tablas
+    let ancho = 220;
+    let x = width - ancho - 20; // Pegado al costado derecho
+    let yCajero = 120; // Arriba
+    let yCocinero = 360; // Abajo
+
+    // ==========================================
+    // TABLA 1: CAJERO (Arriba)
+    // ==========================================
+    dibujarTablaRanking(x, yCajero, ancho, "🏆 MEJORES CAJEROS", rankingDatos.cajero);
+
+    // ==========================================
+    // TABLA 2: COCINERO (Abajo)
+    // ==========================================
+    dibujarTablaRanking(x, yCocinero, ancho, "🏆 MEJORES COCINEROS", rankingDatos.cocinero);
+
+    pop();
+}
+
+// Función auxiliar para dibujar una tabla sola
+function dibujarTablaRanking(x, y, ancho, titulo, datos) {
+    let filas = datos ? datos.length : 0;
+    if (filas === 0) filas = 1; // Para que el cuadro no quede achatado si está vacío
+    
+    // Calculamos el alto dinámicamente según los jugadores (máximo 10)
+    let filasMostrar = Math.min(filas, 10);
+    let alto = 50 + filasMostrar * 20 + 10;
 
     noStroke();
     fill(80, 40, 10, 50);
-    rect(x + 3, y + 4, ancho, alto, 12);          // sombra
+    rect(x + 3, y + 4, ancho, alto, 12); // Sombra
     fill(255, 248, 232);
     stroke(217, 164, 65);
     strokeWeight(2);
-    rect(x, y, ancho, alto, 12);                  // fondo
+    rect(x, y, ancho, alto, 12); // Fondo
     noStroke();
 
     textStyle(BOLD);
-    textSize(15);
+    textSize(14);
     textAlign(CENTER, CENTER);
     fill(139, 69, 19);
-    text("🏆 MEJORES JUGADORES", x + ancho / 2, y + 24);
+    text(titulo, x + ancho / 2, y + 22);
 
-    textSize(14);
+    textSize(13);
     fill(100, 50, 20);
-    if (rankingDatos.length === 0) {
-        text("Todavía no hay puntajes", x + ancho / 2, y + 74);
+    
+    if (!datos || datos.length === 0) {
+        text("Sin puntajes aún", x + ancho / 2, y + 50);
+    } else {
+        for (let i = 0; i < filasMostrar; i++) {
+            let f = datos[i];
+            let fy = y + 45 + i * 20;
+            let nombre = String(f.nombre);
+            
+            if (nombre.length > 12) nombre = nombre.substring(0, 11) + "…";
+            
+            textAlign(LEFT, CENTER);
+            text(f.posicion + ".", x + 10, fy);
+            text(nombre, x + 30, fy);
+            
+            textAlign(RIGHT, CENTER);
+            text(f.puntaje, x + ancho - 10, fy);
+        }
     }
-    for (let i = 0; i < rankingDatos.length; i++) {
-        let f = rankingDatos[i];
-        let fy = y + 52 + i * 22 + 11;
-        let nombre = String(f.nombre);
-        if (nombre.length > 12) nombre = nombre.substring(0, 11) + "…";
-        textAlign(LEFT, CENTER);
-        text(f.posicion + ".", x + 12, fy);
-        text(nombre, x + 40, fy);
-        textAlign(RIGHT, CENTER);
-        text(f.puntaje, x + ancho - 12, fy);
-    }
-    pop();
 }
