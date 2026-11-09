@@ -382,42 +382,42 @@ function mostrarInterfazEscena3() {
     textSize(16);
     text("🛍️ BOLSA:", width / 2, 390);
 
-       // ✅ Mostrar productos agrupados en la bolsa
-    textSize(14);
-    fill(80);
-    
+          // Dibujar los productos dentro de la bolsa uno por uno
     if (bolsa.length === 0) {
+        fill(80);
+        textSize(14);
         text("(vacía) — hacé clic o arrastrá productos acá", width / 2, 430);
     } else {
-        // 1. Contar cuántos hay de cada producto
-        let conteo = {};
+        let inicioXBolsa = width / 2 - 170;
+        let yBolsa = 415;
+        let anchoIcono = 40;
+        let espacioIcono = 10;
+
         for (let i = 0; i < bolsa.length; i++) {
-            let nombre = bolsa[i].nombre;
-            if (!conteo[nombre]) {
-                conteo[nombre] = 1;
-            } else {
-                conteo[nombre]++;
-            }
-        }
-
-        // 2. Armar el texto de la lista
-        let yTexto = 415;
-        for (let nombre in conteo) {
-            let cantidad = conteo[nombre];
+            let prod = bolsa[i];
+            let x = inicioXBolsa + i * (anchoIcono + espacioIcono);
             
-            // Lógica simple para plurales
-            let nombreMostrar = nombre;
-            if (cantidad > 1) {
-                if (nombre === "Pan") nombreMostrar = "Panes";
-                else if (nombre === "Factura") nombreMostrar = "Facturas";
-                else if (nombre === "Medialuna") nombreMostrar = "Medialunas";
-                else if (nombre === "Galleta") nombreMostrar = "Galletas";
-                else if (nombre === "Alfajor") nombreMostrar = "Alfajores";
-                else nombreMostrar = nombre + "s";
-            }
+            // Si el mouse está encima de este icono
+            let sobreIcono = mouseX > x && mouseX < x + anchoIcono && mouseY > yBolsa - 20 && mouseY < yBolsa + 20;
 
-            text("• " + cantidad + " " + nombreMostrar, width / 2 - 150, yTexto);
-            yTexto += 20; // Bajar a la siguiente línea
+            if (sobreIcono) {
+                // Si pasa el mouse, mostramos fondo rojo y la "X"
+                fill(255, 200, 200);
+                rect(x, yBolsa - 20, anchoIcono, 40, 5);
+                fill(200, 0, 0);
+                textSize(20);
+                text("X", x + anchoIcono/2, yBolsa);
+                cursor(HAND);
+            } else {
+                // Si no, mostramos la imagen del producto
+                let img = imagenesProductos[prod.nombre];
+                if (img) {
+                    image(img, x, yBolsa - 20, anchoIcono, 40);
+                } else {
+                    fill(200);
+                    rect(x, yBolsa - 20, anchoIcono, 40);
+                }
+            }
         }
     }
     // Cartel de aviso (dura 5 s y se difumina en 2 s) o, con el pedido armado
@@ -539,16 +539,12 @@ function agregarProductoALaBolsa(indice, xOrigen, yOrigen) {
 
     let producto = productos[indice];
 
-    // Verificar si el producto está en el pedido y cuántos faltan
     let pedidoItem = pedidoActual.find(p => p.producto === producto.nombre);
-    if (!pedidoItem) {
-        mostrarAvisoError("❌ Ese producto no está en el pedido");
-        return;
-    }
+    let cantidadPedida = pedidoItem ? pedidoItem.cantidad : 0;
 
     // Contar cuántos de ese producto ya están en la bolsa
-    let enBolsa = bolsa.filter(p => p.nombre === producto.nombre).length;
-    if (enBolsa >= pedidoItem.cantidad) {
+      let enBolsa = bolsa.filter(p => p.nombre === producto.nombre).length;
+    if (enBolsa >= cantidadPedida && cantidadPedida > 0) { // ✅ SOLUCIONADO
         mostrarAvisoError("❌ Ya agregaste todos los " + producto.nombre);
         return;
     }

@@ -459,7 +459,25 @@ function keyPressed() {
 // ============================================
 // EVENTOS DEL MOUSE
 // ============================================
-function mousePressed() {
+    function mousePressed() {
+    // ✅ QUITAR PRODUCTO DE LA BOLSA
+    if (estado === "cajero_escena3" && bolsa.length > 0) {
+        let inicioXBolsa = width / 2 - 170;
+        let yBolsa = 415;
+        let anchoIcono = 40;
+        let espacioIcono = 10;
+
+        for (let i = 0; i < bolsa.length; i++) {
+            let x = inicioXBolsa + i * (anchoIcono + espacioIcono);
+            if (mouseX > x && mouseX < x + anchoIcono && mouseY > yBolsa - 20 && mouseY < yBolsa + 20) {
+                // ¡Se hizo clic en un producto de la bolsa! Lo quitamos
+                bolsa.splice(i, 1);
+                mostrarAvisoError("Producto quitado de la bolsa", color(200, 100, 0));
+                return; // Cortamos acá para que no haga otra cosa
+            }
+        }
+    }
+    
     // ✅ Si estamos en el menú, el clic también sirve para elegir
     if (estado === "menu") {
         if (mouseY > 250 && mouseY < 310) { modoSeleccionado = "cajero"; estado = "instrucciones"; return; }

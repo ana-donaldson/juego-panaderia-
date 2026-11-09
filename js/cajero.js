@@ -165,10 +165,20 @@ function irAArmarPedido() {
 
 // Pasa de armar el pedido a la caja (tecla ESPACIO o botón "Ir a cobrar")
 function irACobrar() {
+    // Si la bolsa no está completa o tiene cosas de más...
     if (!bolsaCompleta()) {
-        mostrarAvisoError("❌ Faltan productos en la bolsa");
-        return;
+        if (vidas > 0) {
+            vidas--;
+            mostrarAvisoError("❌ ¡Pedido incorrecto! Se descontó 1 vida.");
+            if (vidas <= 0) {
+                estado = "fin";
+                return;
+            }
+            return; // No avanza a la caja, se queda en la escena para que corrija
+        }
     }
+
+    // Si está todo bien, pasa a la caja
     estado = "cajero_escena2";
     inputVuelto = "";
     mensaje = "";
