@@ -57,6 +57,7 @@ let decoracionesRequeridas = [];
 let decoracionesElegidas = [];
 let desplazamientoDecoraciones = 0;
 let arrastrandoDeslizador = false;
+let vidasCocinero = 3; // ✅ Esto va UNA SOLA VEZ acá.
 
 // Estado de la cocción
 let coccionFallida = false;
@@ -86,6 +87,9 @@ const RANKING_CACHE_MS = 15000;     // no se vuelve a pedir si los datos son má
 let imgCliente;
 let imgMostrador;
 let imagenesProductos = {};
+let imagenesIngredientes = {}; 
+let ingredientesEnBowl = [];
+
 
 function preload() {
     imgCliente = loadImage('assets/persona1.png');
@@ -105,6 +109,14 @@ function preload() {
     imagenesRecetas["Tortas"] = imagenesProductos["Torta"];
     imagenesRecetas["Alfajores"] = imagenesProductos["Alfajor"];
 
+     imagenesIngredientes["Harina"] = loadImage('assets/recetas/harina.jpg');
+    imagenesIngredientes["Manteca"] = loadImage('assets/recetas/manteca.jpg');
+    imagenesIngredientes["Leche"] = loadImage('assets/recetas/leche.jpg');
+    imagenesIngredientes["Azúcar"] = loadImage('assets/recetas/azucar.jpg');
+    imagenesIngredientes["Huevos"] = loadImage('assets/recetas/huevos.jpg');
+    imagenesIngredientes["Sal"] = loadImage('assets/recetas/sal.jpg');
+    imagenesIngredientes["Levadura"] = loadImage('assets/recetas/levadura.jpg');
+
     console.log("Imágenes cargadas:", imagenesProductos);
 }
 
@@ -113,6 +125,7 @@ function cargarImagenOpcional(ruta, destino, clave) {
 }
 
 function setup() {
+    cargarImagenOpcional('assets/recetas/masa.jpg', imagenesRecetas, "Masa");
     cargarImagenOpcional('assets/productos/torta.jpg', imagenesProductos, "Torta");
     cargarImagenOpcional('assets/recetas/torta.jpg', imagenesRecetas, "Tortas");
     cargarImagenOpcional('assets/productos/alfajor.jpg', imagenesProductos, "Alfajor");
@@ -312,7 +325,9 @@ function comenzarPartida() {
 // EVENTOS DEL TECLADO
 // ============================================
 function keyPressed() {
+    // ==========================================
     // MENÚ
+    // ==========================================
     if (estado === "menu") {
         if (keyCode === UP_ARROW || keyCode === DOWN_ARROW) {
             modoSeleccionado = (modoSeleccionado === "cajero") ? "cocinero" : "cajero";
@@ -320,10 +335,12 @@ function keyPressed() {
         if (keyCode === ENTER || key === 'Enter') {
             estado = "instrucciones";
         }
-        return; 
+        return; // ✅ ACÁ CIERRA EL MENÚ Y CORTA PARA QUE NO SIGA DE LARGO
     }
 
+    // ==========================================
     // INSTRUCCIONES
+    // ==========================================
     if (estado === "instrucciones") {
         if (keyCode === ENTER || key === 'Enter') {
             comenzarPartida();
@@ -332,7 +349,9 @@ function keyPressed() {
         if (key === 'Escape') { estado = "menu"; }
     }
 
+    // ==========================================
     // MODO COCINERO: ELEGIR PRODUCTO
+    // ==========================================
     if (estado === "cocinero_seleccion") {
         if (key === 'Escape') { estado = "menu"; return; }
         let n = recetas.length;
@@ -349,21 +368,64 @@ function keyPressed() {
             indiceRecetaSeleccionada = j;
         }
         if (keyCode === ENTER || key === 'Enter') iniciarReceta(indiceRecetaSeleccionada);
+        
         return;
     }
 
+    // ==========================================
     // MODO COCINERO: ESCENA 1 (Preparación)
+    // ==========================================
     if (estado === "cocinero_escena1") {
         if (key === 'Escape') { estado = "menu"; return; }
         if (keyCode === LEFT_ARROW) indiceIngredienteSeleccionado = (indiceIngredienteSeleccionado - 1 + ingredientesDisponibles.length) % ingredientesDisponibles.length;
         if (keyCode === RIGHT_ARROW) indiceIngredienteSeleccionado = (indiceIngredienteSeleccionado + 1) % ingredientesDisponibles.length;
         if (keyCode === UP_ARROW) indiceIngredienteSeleccionado = (indiceIngredienteSeleccionado - 2 + ingredientesDisponibles.length) % ingredientesDisponibles.length;
         if (keyCode === DOWN_ARROW) indiceIngredienteSeleccionado = (indiceIngredienteSeleccionado + 2) % ingredientesDisponibles.length;
-        if (keyCode === ENTER || key === 'Enter') agregarIngrediente(indiceIngredienteSeleccionado);
-        if (key === ' ') { irAlHorno(); return; }
+        
+       
+                         if (keyCode === ENTER || key === 'Enter') {
+            let ingSeleccionado = ingredientesDisponibles[indiceIngredienteSeleccionado];
+            let estaEnReceta = recetaActual.ingredientes.includes(ingSeleccionado);
+
+            if (!estaEnReceta) {
+                if (vidasCocinero === undefined) vidasCocinero = 3;
+                vidasCocinero--; 
+                
+                mostrarAvisoError("❌ ¡Ese ingrediente no va! Vidas: " + vidasCocinero);
+                
+                if (vidasCocinero <= 0) {
+                    estado = "fin"; 
+                    mensaje = "";
+                    return; 
+                }
+            } else {
+                if (ingredientesEnBowl.includes(ingSeleccionado)) {
+                    mostrarAvisoError("❌ Ya agregaste " + ingSeleccionado);
+                } else {
+                    ingredientesEnBowl.push(ingSeleccionado); 
+                    mensaje = "✅ ¡Bien! Agregaste " + ingSeleccionado;
+                    mensajeColor = color(0, 150, 0);
+                    if (ingredientesEnBowl.length === recetaActual.ingredientes.length) {
+                        mensaje = "✅ ¡Todo listo! Presiona ESPACIO para ir al horno.";
+                    }
+                }
+            }
+            
+            // ✅ ESTE RETURN ES LA CLAVE: evita que el ENTER se ejecute dos veces
+            return; 
+        }
+        
+        if (key === ' ') { 
+            irAlHorno(); 
+            return; 
+        }
+        
+        return; // ✅ ACÁ CIERRA LA PREPARACIÓN
     }
 
+    // ==========================================
     // MODO COCINERO: ESCENA 2 (Horno)
+    // ==========================================
     if (estado === "cocinero_escena2") {
         if (key === 'Escape') { estado = "menu"; return; }
         if (coccionExitosa) {
@@ -397,7 +459,9 @@ function keyPressed() {
         }
     }
 
+    // ==========================================
     // MODO COCINERO: ESCENA 3 (Pintar)
+    // ==========================================
     if (estado === "cocinero_escena3") {
         if (key === 'Escape') { estado = "menu"; return; }
         if (keyCode === LEFT_ARROW) indiceProductoPintar = (indiceProductoPintar - 1 + 6) % 6;
@@ -408,7 +472,9 @@ function keyPressed() {
         if (key === ' ') { terminarPintado(); return; }
     }
 
+    // ==========================================
     // MODO COCINERO: ESCENA 4 (Decoración)
+    // ==========================================
     if (estado === "cocinero_escena4") {
         if (key === 'Escape') { estado = "menu"; return; }
         if (keyCode === LEFT_ARROW) indiceDecoracionSeleccionada = (indiceDecoracionSeleccionada - 1 + decoracionesDisponibles.length) % decoracionesDisponibles.length;
@@ -420,13 +486,17 @@ function keyPressed() {
         if (key === ' ') { entregarProducto(); return; }
     }
 
+    // ==========================================
     // MODO CAJERO: ESCENA 1
+    // ==========================================
     if (estado === "cajero_escena1") {
         if (key === 'Escape') { estado = "menu"; ocultarCliente(); return; }
         if (key === ' ' && clienteVisible) { irAArmarPedido(); return; }
     }
 
+    // ==========================================
     // MODO CAJERO: ESCENA 3
+    // ==========================================
     if (estado === "cajero_escena3") {
         if (key === 'Escape') { estado = "menu"; ocultarCliente(); return; }
         if (keyCode === LEFT_ARROW) productoSeleccionado = (productoSeleccionado - 1 + productos.length) % productos.length;
@@ -437,7 +507,9 @@ function keyPressed() {
         if (key === ' ') { irACobrar(); return; }
     }
 
+    // ==========================================
     // MODO CAJERO: ESCENA 2
+    // ==========================================
     if (estado === "cajero_escena2") {
         if (key === 'Escape') { estado = "menu"; ocultarCliente(); return; }
         if (mostrandoResultado) return;
@@ -449,17 +521,18 @@ function keyPressed() {
         if (keyCode === ENTER || key === 'Enter') confirmarVuelto();
     }
 
+    // ==========================================
     // FIN
+    // ==========================================
     if (estado === "fin") {
         if (key === 'r' || key === 'R') { reiniciarJuego(); estado = "menu"; }
         if (key === 'm' || key === 'M') estado = "menu";
     }
 }
-
 // ============================================
 // EVENTOS DEL MOUSE
 // ============================================
-    function mousePressed() {
+   function mousePressed() {
     // ✅ QUITAR PRODUCTO DE LA BOLSA
     if (estado === "cajero_escena3" && bolsa.length > 0) {
         let inicioXBolsa = width / 2 - 170;
@@ -470,10 +543,9 @@ function keyPressed() {
         for (let i = 0; i < bolsa.length; i++) {
             let x = inicioXBolsa + i * (anchoIcono + espacioIcono);
             if (mouseX > x && mouseX < x + anchoIcono && mouseY > yBolsa - 20 && mouseY < yBolsa + 20) {
-                // ¡Se hizo clic en un producto de la bolsa! Lo quitamos
                 bolsa.splice(i, 1);
                 mostrarAvisoError("Producto quitado de la bolsa", color(200, 100, 0));
-                return; // Cortamos acá para que no haga otra cosa
+                return; 
             }
         }
     }
@@ -512,8 +584,23 @@ function keyPressed() {
             arrastrando = { indice: i, movido: false, xIni: mouseX, yIni: mouseY };
         }
     }
+} // ✅ ACÁ VA LA LLAVE QUE FALTABA PARA CERRAR EL MOUSEPRESSED
+
+// ✅ FUNCIÓN QUE FALTABA PARA DETECTAR DÓNDE ESTÁ EL MOUSE
+function rectProducto(i) {
+    let cantidad = productos.length, ancho = 132, alto = 150, espacio = 10;
+    let totalAncho = cantidad * ancho + (cantidad - 1) * espacio;
+    let inicioX = width / 2 - totalAncho / 2;
+    return { x: inicioX + i * (ancho + espacio), y: 190, w: ancho, h: alto };
 }
 
+function productoBajoMouse() {
+    for (let i = 0; i < productos.length; i++) {
+        let r = rectProducto(i);
+        if (mouseX >= r.x && mouseX <= r.x + r.w && mouseY >= r.y && mouseY <= r.y + r.h) return i;
+    }
+    return -1;
+}
 function mouseDragged() {
     if (arrastrandoDeslizador) desplazarDesdeMouse();
     if (arrastrando && dist(mouseX, mouseY, arrastrando.xIni, arrastrando.yIni) > 6) {
@@ -548,6 +635,7 @@ function mouseReleased() {
 // REINICIAR JUEGO
 // ============================================
 function reiniciarJuego() {
+    ingredientesEnBowl = [];
     clienteActual = 0;
     puntos = 0;
     vidas = 3;

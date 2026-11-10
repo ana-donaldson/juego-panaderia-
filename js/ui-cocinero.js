@@ -27,107 +27,127 @@ function mostrarInstruccionesCocinero() {
 
     textAlign(CENTER, CENTER);
     dibujarCartelInteractivo();
-}
-function mostrarInterfazCocinero1() {
-    // Título
-    fill(139, 69, 19);
-    textSize(28);
-    text("👨‍🍳 PREPARACIÓN", width / 2, 50);
-
-    // ==========================================
-    // PANEL IZQUIERDO: La Receta
-    // ==========================================
+}function mostrarInterfazCocinero1() {
+    // --- PANEL IZQUIERDO: Lista de Ingredientes ---
     fill(255, 255, 255, 220);
-    rect(50, 80, 350, 450, 10);
-
-    fill(0);
-    textSize(20);
-    text("Receta: " + recetaActual.nombre, 225, 110);
-
-    // Foto de la receta (Simulada con un rectángulo por ahora)
-    // En mostrarInterfazCocinero1()
-if (imgRecetaActual) {
-    image(imgRecetaActual, 100, 130, 250, 150);
-} else {
-    fill(200); rect(100, 130, 250, 150, 10); // El recuadro gris
-    textSize(60);
-    text(recetaActual.emoji || "🍽️", 225, 205);  // sin foto: se muestra el emoji
-}
-    // Lista de ingredientes necesarios
-    fill(0);
-    textSize(16);
-    text("Ingredientes necesarios:", 80, 310);
+    rect(20, 20, 250, 250, 10);
     
-    let yIng = 340;
+    fill(0);
+    textSize(18);
+    textAlign(CENTER, CENTER);
+    text("Receta: " + recetaActual.nombre, 145, 45);
+    
+    textAlign(LEFT, CENTER);
+    textSize(14);
+    let yIng = 80;
     for (let i = 0; i < recetaActual.ingredientes.length; i++) {
         let ing = recetaActual.ingredientes[i];
-        let agregado = pasoIngrediente > i; // Si ya lo agregó
+        
+        let agregado = ingredientesEnBowl.includes(ing);
 
         if (agregado) {
-            fill(0, 150, 0); // Verde si ya está
-            text("✅ " + ing, 80, yIng);
+            fill(0, 150, 0);
+            text("✅ " + ing, 40, yIng);
         } else {
-            fill(0);
-            text("⬜ " + ing, 80, yIng);
+            fill(100);
+            text("⬜ " + ing, 40, yIng);
         }
         yIng += 30;
     }
 
-    // ==========================================
-    // PANEL DERECHO: La Mesa de Ingredientes
-    // ==========================================
-    fill(255, 255, 255, 220);
-    rect(450, 80, 400, 450, 10);
+    // --- ARRIBA CENTRO: Foto de la receta ---
+    if (imagenesRecetas[recetaActual.nombre]) {
+        image(imagenesRecetas[recetaActual.nombre], width / 2 - 60, 20, 120, 80);
+    } else {
+        fill(200); rect(width / 2 - 60, 20, 120, 80, 10);
+        fill(100); textSize(12); text("[Foto]", width / 2, 60);
+    }
 
+    // --- EL BOL CENTRAL ---
+    // ✅ SI YA ESTÁ LISTA LA MASA, NO DIBUJAMOS EL BOL GRIS
+    if (ingredientesEnBowl.length === recetaActual.ingredientes.length) {
+        if (imagenesRecetas["Masa"]) {
+            image(imagenesRecetas["Masa"], width / 2 - 90, 160, 180, 120);
+        } else {
+            fill(240, 220, 180);
+            ellipse(width / 2, 220, 160, 110);
+            fill(150, 100, 50);
+            textSize(16);
+            text("¡Masa Lista!", width / 2, 220);
+        }
+    } else {
+        // Si todavía NO terminó, dibujamos el bol gris y los ingredientes
+        fill(150, 150, 150);
+        ellipse(width / 2, 220, 160, 120);
+        fill(120, 120, 120);
+        ellipse(width / 2, 225, 160, 110); // El 3D
+
+        if (ingredientesEnBowl.length === 0) {
+            fill(80);
+            textSize(14);
+            text("Tirá los ingredientes acá", width / 2, 220);
+        } else {
+            for (let i = 0; i < ingredientesEnBowl.length; i++) {
+                let ing = ingredientesEnBowl[i];
+                let img = imagenesIngredientes[ing];
+                
+                let angulo = (i / recetaActual.ingredientes.length) * TWO_PI;
+                let x = width / 2 + cos(angulo) * 40;
+                let y = 220 + sin(angulo) * 30;
+
+                if (img) {
+                    image(img, x - 20, y - 20, 40, 40);
+                } else {
+                    fill(255, 100, 100);
+                    rect(x - 15, y - 15, 30, 30);
+                }
+            }
+        }
+    }
+
+    // --- ABAJO: Mesa de trabajo ---
+    fill(180, 140, 100);
+    rect(0, 350, width, 250);
     fill(0);
-    textSize(18);
-    text("Mesa de trabajo:", 650, 110);
+    textSize(16);
+    text("Mesa de trabajo", width / 2, 380);
 
-    // Dibujar ingredientes disponibles (grilla de 2x4)
-    let inicioX = 480;
-    let inicioY = 150;
-    let anchoCaja = 160;
+    let inicioX = 100;
+    let anchoCaja = 100;
     let altoCaja = 80;
-    let espacioX = 20;
-    let espacioY = 20;
+    let espacio = 20;
 
     for (let i = 0; i < ingredientesDisponibles.length; i++) {
-        let col = i % 2;
-        let fil = Math.floor(i / 2);
-        let x = inicioX + col * (anchoCaja + espacioX);
-        let y = inicioY + fil * (altoCaja + espacioY);
+        let x = inicioX + i * (anchoCaja + espacio);
+        let y = 450;
 
-        // Resaltar si está seleccionado
         if (i === indiceIngredienteSeleccionado) {
-            fill(255, 220, 100);
-            stroke(200, 150, 0);
-            strokeWeight(3);
+            fill(255, 220, 100); stroke(200, 150, 0); strokeWeight(4);
         } else {
-            fill(255, 255, 255);
-            noStroke();
+            fill(255, 255, 255); noStroke();
         }
         rect(x, y, anchoCaja, altoCaja, 10);
         noStroke();
 
-        // Nombre del ingrediente
-        fill(0);
-        textSize(16);
-        text(ingredientesDisponibles[i], x + anchoCaja / 2, y + altoCaja / 2);
+        let img = imagenesIngredientes[ingredientesDisponibles[i]];
+        if (img) {
+            image(img, x + 20, y + 10, 60, 60);
+        } else {
+            fill(0); textSize(14);
+            text(ingredientesDisponibles[i], x + anchoCaja / 2, y + altoCaja / 2);
+        }
     }
 
-    // Mensaje de estado
+    // Instrucciones y mensajes
     if (mensaje !== "") {
-        let alfa = alfaMensaje();   // los mensajes temporales se difuminan solos
-        fill(red(mensajeColor), green(mensajeColor), blue(mensajeColor), alfa);
+        fill(mensajeColor);
         textSize(18);
-        text(mensaje, 650, 480);
+        text(mensaje, width / 2, height - 30);
     }
 
-    // Manito al pasar el mouse sobre un ingrediente
-    if (ingredienteBajoMouse() >= 0) cursor(HAND);
-
-    // Instrucciones abajo (cartel interactivo: clic = tecla ESPACIO)
-    dibujarCartelInteractivo();
+    fill(0);
+    textSize(14);
+    text("← → Seleccionar  |  ENTER Agregar al Bowl  |  ESPACIO Ir al Horno", width / 2, height - 10);
 }
 function mostrarInterfazCocinero2() {
     // Título
@@ -433,8 +453,11 @@ function mostrarSeleccionReceta() {
 
 // Arranca la preparación de la receta elegida
 function iniciarReceta(i) {
+    vidasCocinero = 3; 
     indiceRecetaSeleccionada = i;
     recetaActual = recetas[i];
+
+    ingredientesEnBowl = [];
     imgRecetaActual = imagenesRecetas[recetaActual.nombre] || null;
     estado = "cocinero_escena1";
     pasoIngrediente = 0;
@@ -496,9 +519,9 @@ function siguienteEtapa(actual) {
     return { estado: "fin", texto: "entregar" };
 }
 
-// Ingredientes -> horno
 function irAlHorno() {
-    if (pasoIngrediente < recetaActual.ingredientes.length) {
+    // ✅ Cambiamos pasoIngrediente por ingredientesEnBowl
+    if (ingredientesEnBowl.length < recetaActual.ingredientes.length) {
         mostrarAvisoError("❌ Faltan ingredientes en la mesa.");
         return;
     }

@@ -34,6 +34,7 @@ function dibujarMostradorFormas() {
 }
 function mostrarMenu(modoSeleccionado) {
     // Título
+     textAlign(CENTER, CENTER);
     fill(100, 50, 20);
     textSize(50);
     text("🥖 PANADERÍA", width / 2 + 3, 123);
@@ -202,30 +203,39 @@ function mostrarInterfazCajero() {
 // PANTALLA FINAL
 // ============================================
 function mostrarFin() {
+    
     fill(0);
     textSize(30);
 
-    // ✅ Si viene del cocinero, mostramos victoria
     if (modoSeleccionado === "cocinero") {
-        text("🎉 ¡DELICIOSO!", width / 2, 200);
-        text("Preparaste " + recetaActual.nombre, width / 2, 250);
-        if (decoracionElegida !== "") text("Con: " + decoracionElegida, width / 2, 290);
-        textSize(18);
-        text("¡Sos un maestro pastelero!", width / 2, 350);
+        // ✅ ACÁ REVISAMOS SI PERDIÓ O GANÓ
+        if (vidasCocinero <= 0) {
+            text("💀 GAME OVER", width / 2, 200);
+            text("Te equivocaste demasiadas veces.", width / 2, 250);
+            textSize(18);
+            text("¡Intentá de nuevo!", width / 2, 300);
+        } else {
+            text("🎉 ¡DELICIOSO!", width / 2, 200);
+            text("Preparaste " + recetaActual.nombre, width / 2, 250);
+            if (decoracionElegida !== "") text("Con: " + decoracionElegida, width / 2, 290);
+            textSize(18);
+            text("¡Sos un maestro pastelero!", width / 2, 350);
+        }
     } 
-    // Si viene del cajero, mantenemos tu lógica de siempre
     else if (caja <= 0) {
         text("💀 ¡LA PANADERÍA QUEBRÓ!", width / 2, 160);
-        // ... (tu código del cajero)
+        text("Te quedaste sin dinero en caja.", width / 2, 210);
+        text("Atendiste " + clientesAtendidos + " clientes", width / 2, 260);
+        text("⭐ Puntuación: " + puntos, width / 2, 310);
     } else if (vidas <= 0) {
         text("💀 GAME OVER", width / 2, 200);
-        // ... (tu código del cajero)
-    } else if (vidas === 3) {   // 3 = vidas con las que empieza: no se equivocó en ningún vuelto
-        text("🎉 ¡PANADERO EXCEPCIONAL!", width / 2, 180);
-        // ... (tu código del cajero)
+        text("Atendiste " + clientesAtendidos + " clientes", width / 2, 250);
+        text("⭐ Puntuación: " + puntos, width / 2, 300);
     } else {
-        text("🎉 ¡Has atendido a todos los clientes de esta hora!", width / 2, 180);
-        // ... (tu código del cajero)
+        text("🎉 ¡PANADERO EXCEPCIONAL!", width / 2, 180);
+        text("Atendiste a TODOS los clientes", width / 2, 230);
+        text("💰 Caja final: $" + caja.toFixed(2), width / 2, 280);
+        text("⭐ Puntuación final: " + puntos, width / 2, 330);
     }
 
     textSize(18);
