@@ -173,7 +173,6 @@ form.addEventListener('submit', async e => {
     usuario: $('#usuario').value.trim(),
     email: $('#email').value.trim(),
     pass: $('#pass').value,
-    rol: $('#rol').value
   };
 
   const btn = $('#enviar'); btn.disabled = true;
