@@ -43,9 +43,9 @@ function mostrarMenu(modoSeleccionado) {
 
     fill(100, 50, 20);
     textSize(26);
-    text('"Del Horno a la Mano"', width / 2, 173);
+    text('"Reino del pastel"', width / 2, 173);
     fill(80, 40, 10);
-    text('"Del Horno a la Mano"', width / 2, 170);
+    text('"Reino del pastel"', width / 2, 170);
 
     // OPCIÓN 1: MODO CAJERO
     let yCajero = 280;
