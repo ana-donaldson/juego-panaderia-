@@ -139,6 +139,9 @@ function setup() {
     // En setup(), junto a las otras cargas:
 cargarImagenOpcional('assets/recetas/medialuna.jpg', imagenesDecoraciones, "Medialunas");
 cargarImagenOpcional('assets/productos/medialuna.jpg', imagenesDecoraciones, "Medialunas"); // Por si la tenés en productos
+    // En setup(), donde cargás las imágenes de las decoraciones:
+    cargarImagenOpcional('assets/recetas/factura_lisa.jpg', imagenesDecoraciones, "Facturas"); 
+cargarImagenOpcional('assets/recetas/galleta_base.jpg', imagenesDecoraciones, "Galletas");
 
 
     // ---- Pintado con huevo: una imagen "sin" y otra "con" huevo por receta que lo usa ----

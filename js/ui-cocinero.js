@@ -324,25 +324,21 @@ function mostrarInterfazCocinero3() {
     textSize(28);
     text("🎂 DECORACIÓN FINAL", width / 2, 50);
     // --- DIBUJO DEL PRODUCTO ---
-    // 1. Buscamos la imagen base según la receta actual
+       // 1. Buscamos la imagen base según la receta actual
     let imagenBase = imagenesDecoraciones["base"]; // Por defecto, el bizcochuelo de la torta
     
+    // ✅ ACÁ AGREGAMOS LA FACTURA
     if (recetaActual.nombre === "Medialunas" && imagenesDecoraciones["Medialunas"]) {
-        imagenBase = imagenesDecoraciones["Medialunas"]; // Si es medialuna, usamos su foto
-    }
-
-    // Dibujamos la base
-    if (imagenBase) {
+        imagenBase = imagenesDecoraciones["Medialunas"]; 
+    } else if (recetaActual.nombre === "Facturas" && imagenesDecoraciones["Facturas"]) {
+        imagenBase = imagenesDecoraciones["Facturas"]; 
+    }  if (imagenBase) {
         image(imagenBase, width / 2 - 90, 80, 180, 120);
     } else {
-        // Si no hay imagen, dibujamos un cuadro genérico
+        // Si no encuentra la foto, dibuja un cuadro genérico
         fill(200, 150, 100); 
         rect(width / 2 - 90, 80, 180, 120, 20);
-        fill(0);
-        textSize(14);
-        text("(Foto de " + recetaActual.nombre + ")", width / 2, 140);
     }
-
     // 2. Superponemos las decoraciones elegidas
     if (typeof decoracionesElegidas !== 'undefined') {
         for (let i = 0; i < decoracionesElegidas.length; i++) {
