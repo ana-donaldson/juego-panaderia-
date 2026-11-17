@@ -89,6 +89,7 @@ let imgMostrador;
 let imagenesProductos = {};
 let imagenesIngredientes = {}; 
 let ingredientesEnBowl = [];
+let imagenesDecoraciones = {};
 
 
 function preload() {
@@ -117,6 +118,10 @@ function preload() {
     imagenesIngredientes["Sal"] = loadImage('assets/recetas/sal.jpg');
     imagenesIngredientes["Levadura"] = loadImage('assets/recetas/levadura.jpg');
 
+    
+
+    
+
     console.log("Imágenes cargadas:", imagenesProductos);
 }
 
@@ -130,6 +135,11 @@ function setup() {
     cargarImagenOpcional('assets/recetas/torta.jpg', imagenesRecetas, "Tortas");
     cargarImagenOpcional('assets/productos/alfajor.jpg', imagenesProductos, "Alfajor");
     cargarImagenOpcional('assets/recetas/alfajor.jpg', imagenesRecetas, "Alfajores");
+    cargarImagenOpcional('assets/decoraciones/bizcochuelo.jpg', imagenesDecoraciones, "base");
+    // En setup(), junto a las otras cargas:
+cargarImagenOpcional('assets/recetas/medialuna.jpg', imagenesDecoraciones, "Medialunas");
+cargarImagenOpcional('assets/productos/medialuna.jpg', imagenesDecoraciones, "Medialunas"); // Por si la tenés en productos
+
 
     // ---- Pintado con huevo: una imagen "sin" y otra "con" huevo por receta que lo usa ----
     for (let n of ["Medialunas", "Tortas", "Facturas"]) {
@@ -458,7 +468,25 @@ function keyPressed() {
             }
         }
     }
-
+function avanzarDesdeHorno() {
+    // Si no necesita brillo, ni decoración (como el Pan), va directo al final
+    if (recetaActual.necesitaBrillo === false && recetaActual.necesitaDecoracion === false) {
+        estado = "fin";
+        mensaje = "";
+        return;
+    }
+    
+    // Si necesita brillo, va a pintar
+    if (recetaActual.necesitaBrillo === true) {
+        estado = "cocinero_escena3"; 
+        productosPintados = []; 
+    } 
+    // Si no necesita brillo pero SÍ decoración, va directo a decorar
+    else {
+        estado = "cocinero_escena4"; 
+    }
+    mensaje = "";
+}
     // ==========================================
     // MODO COCINERO: ESCENA 3 (Pintar)
     // ==========================================

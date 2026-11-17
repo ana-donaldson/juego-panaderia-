@@ -709,8 +709,10 @@ function alfaMensaje() {
     if (mensajeTemp === null || mensaje !== mensajeTemp.texto) return 255;
     let t = millis() - mensajeTemp.inicio;
     if (t < mensajeTemp.visible) return 255;
+    
+    // ✅ Si pasó el tiempo de difuminado, BORRAMOS el mensaje
     if (t >= mensajeTemp.visible + MENSAJE_DIFUMINADO) {
-        mensaje = "";
+        mensaje = ""; // Acá lo borra
         mensajeTemp = null;
         return 0;
     }

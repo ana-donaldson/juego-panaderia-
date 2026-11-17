@@ -250,7 +250,7 @@ function mostrarInterfazCocinero3() {
     // Título
     fill(139, 69, 19);
     textSize(28);
-    text("🥐 DAR BRILLO", width / 2, 50);
+    text(" DAR BRILLO", width / 2, 50);
 
     // Bandeja de horno
     fill(100, 100, 100);
@@ -318,42 +318,77 @@ function mostrarInterfazCocinero3() {
     if (mensaje !== "") {
         dibujarAviso(mensaje, width / 2, 82, "suave", mensajeColor, alfaMensaje());
     }
-}
-function mostrarInterfazCocinero4() {
+}function mostrarInterfazCocinero4() {
     // Título
     fill(139, 69, 19);
     textSize(28);
     text("🎂 DECORACIÓN FINAL", width / 2, 50);
+    // --- DIBUJO DEL PRODUCTO ---
+    // 1. Buscamos la imagen base según la receta actual
+    let imagenBase = imagenesDecoraciones["base"]; // Por defecto, el bizcochuelo de la torta
+    
+    if (recetaActual.nombre === "Medialunas" && imagenesDecoraciones["Medialunas"]) {
+        imagenBase = imagenesDecoraciones["Medialunas"]; // Si es medialuna, usamos su foto
+    }
 
-    // Mostrar el producto ya horneado y brillante
-    fill(255, 200, 100);
-    rect(250, 100, 400, 200, 20);
+    // Dibujamos la base
+    if (imagenBase) {
+        image(imagenBase, width / 2 - 90, 80, 180, 120);
+    } else {
+        // Si no hay imagen, dibujamos un cuadro genérico
+        fill(200, 150, 100); 
+        rect(width / 2 - 90, 80, 180, 120, 20);
+        fill(0);
+        textSize(14);
+        text("(Foto de " + recetaActual.nombre + ")", width / 2, 140);
+    }
+
+    // 2. Superponemos las decoraciones elegidas
+    if (typeof decoracionesElegidas !== 'undefined') {
+        for (let i = 0; i < decoracionesElegidas.length; i++) {
+            let deco = decoracionesElegidas[i];
+            let imgDeco = imagenesDecoraciones[deco];
+            
+            if (imgDeco) {
+                image(imgDeco, width / 2 - 90, 80, 180, 120);
+            }
+        }
+    }
+
+    // 2. TEXTO DE LA RECETA
     fill(0);
-    textSize(20);
-    text("Producto Listo:", width / 2, 130);
-    text(recetaActual.nombre, width / 2, 170);
+    textSize(16);
+    text("Producto: " + recetaActual.nombre, width / 2, 210);
 
-    // Panel de decoraciones
-    fill(255, 255, 255, 220);
-    rect(200, 330, 500, 150, 10);
+    // Decoraciones requeridas
+    let lista = decoracionesRequeridas.map(d => (decoracionesElegidas.includes(d) ? "✅ " : "⬜ ") + d).join("   ");
+    textSize(14);
+    text("Falta decorar con: " + (lista || "Nada más"), width / 2, 240);
+
+    // 3. PANEL DE OPCIONES
+    fill(255, 255, 255, 230);
+    rect(150, 280, 600, 220, 10);
 
     fill(0);
     textSize(18);
-    text("Elegí la decoración:", width / 2, 360);
+    text("Elegí la decoración:", width / 2, 310);
 
-    // Decoraciones que pide la receta (se sortean al empezar; ✅ = ya elegida)
-    let lista = decoracionesRequeridas.map(d => (decoracionesElegidas.includes(d) ? "✅ " : "⬜ ") + d).join("   ");
-    dibujarAviso(["Decoraciones de la receta:", lista], width / 2, 235, "suave");
-
-    // Grilla de 2 columnas (se ven 2 filas; el resto se desliza)
-    let anchoCaja = 200;
-    let altoCaja = 40;
+    // ✅ NUEVA GRILLA MÁS CHICA Y CENTRADA
+           let anchoCaja = 210; // 👈 Un poco más angostas
+    let altoCaja = 30;   // 👈 Más petisas
+    let inicioX = width / 2 - 220;
+    let inicioY = 330;   // 👈 Las subimos un poquito
+    let espacioX = 15;
+    let espacioY = 10;   // 👈 Menos espacio entre ellas
 
     for (let i = 0; i < decoracionesDisponibles.length; i++) {
-        let r = rectDecoracion(i);
-        if (!r) continue;   // fuera de la zona visible
+        // Calculamos la posición en 2 columnas
+        let col = i % 2;
+        let fil = Math.floor(i / 2);
+        let x = inicioX + col * (anchoCaja + espacioX);
+        let y = inicioY + fil * (altoCaja + espacioY);
 
-        // Resaltar si está seleccionado (verde si ya fue elegida)
+        // Resaltar si está seleccionado
         if (i === indiceDecoracionSeleccionada) {
             fill(255, 220, 100);
             stroke(200, 150, 0);
@@ -363,24 +398,24 @@ function mostrarInterfazCocinero4() {
             noStroke();
         } else {
             fill(255, 255, 255);
-            noStroke();
+            stroke(200);
+            strokeWeight(1);
         }
-        rect(r.x, r.y, anchoCaja, altoCaja, 5);
+        rect(x, y, anchoCaja, altoCaja, 8);
         noStroke();
 
-        fill(0);
-        textSize(14);
-        text(decoracionesDisponibles[i], r.x + anchoCaja / 2, r.y + altoCaja / 2);
+        // ✅ TEXTO MÁS CHICO PARA QUE ENTRE
+               fill(0);
+        textSize(12); // 👈 Letra más chica para que entre "Baño de Chocolate"
+        text(decoracionesDisponibles[i], x + anchoCaja / 2, y + altoCaja / 2);
     }
 
-    dibujarDeslizadorDecoraciones();
-    if (decoracionBajoMouse() >= 0 || (hayDeslizador() && mouseSobreDeslizador())) cursor(HAND);
-
-    // Instrucciones (cartel interactivo: clic = tecla ESPACIO)
+    // Instrucciones
     dibujarCartelInteractivo();
 
-    if (mensaje !== "") {
-        dibujarAviso(mensaje, width / 2, 515, "suave", mensajeColor, alfaMensaje());
+        if (mensaje !== "") {
+        // Lo movemos un poquito más arriba (y: 270) para que no tape los botones
+        dibujarAviso(mensaje, width / 2, 270, "suave", mensajeColor, alfaMensaje());
     }
 }
 
@@ -453,6 +488,8 @@ function mostrarSeleccionReceta() {
 
 // Arranca la preparación de la receta elegida
 function iniciarReceta(i) {
+    mensaje = "";
+    mensajeTemp = null;
     vidasCocinero = 3; 
     indiceRecetaSeleccionada = i;
     recetaActual = recetas[i];

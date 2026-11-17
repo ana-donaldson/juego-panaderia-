@@ -39,8 +39,8 @@ const recetas = [
         imagen: "productos/recetas/torta.jpg",
         ingredientes: ["Harina", "Huevos", "Leche", "Azúcar"],
         temperatura: 170,
-        tiempoIdeal: 20,
-        necesitaBrillo: true,
+        tiempoIdeal: 17,
+        necesitaBrillo: false,
         necesitaDecoracion: true,
         decoraciones: ["Crema de Chocolate", "Crema de Vainilla", "Frutillas", "Chips de Chocolate", "Azúcar Impalpable"]
     },
@@ -50,7 +50,7 @@ const recetas = [
         ingredientes: ["Harina", "Levadura", "Sal", "Manteca"],
         temperatura: 200,
         tiempoIdeal: 12,
-        necesitaBrillo: false,
+        necesitaBrillo: true,
         necesitaDecoracion: false
     },
     {

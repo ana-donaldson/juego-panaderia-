@@ -3,7 +3,7 @@ header('Content-Type: application/json; charset=utf-8');
 include 'conexion.php';
 $conn->set_charset('utf8mb4');
 
-// Función para obtener el Top 10 de una tabla específica
+// Función para obtener el top 10 de una tabla específica
 function obtenerRanking($conn, $tabla) {
     $sql = "SELECT j.nombre_usuario AS nombre, MAX(p.puntuacion) AS puntaje
             FROM $tabla p
