@@ -1,3 +1,7 @@
+
+
+
+
 function dibujarFondo() {
     background(245, 235, 220);
 
@@ -80,7 +84,7 @@ function mostrarMenu(modoSeleccionado) {
     text("Modo Cocinero", width / 2, yCocinero);
 
     // Instrucción
-    fill(150);
+     fill(100, 50, 20);
     textSize(16);
     text("Usa ↑ ↓ para elegir y ENTER para jugar", width / 2, 480);
 }
@@ -973,4 +977,32 @@ function dibujarTablaRanking(x, y, ancho, titulo, datos) {
             text(f.puntaje, x + ancho - 10, fy);
         }
     }
+}
+
+function dibujarBotonInicio() {
+    // Coordenadas del botón (arriba a la izquierda)
+    let x = width - 120; 
+     let y = 60;
+    let ancho = 100;
+    let alto = 35;
+
+    // Detectar si el mouse está encima para darle un efecto
+    let encima = (mouseX > x && mouseX < x + ancho && mouseY > y && mouseY < y + alto);
+
+    if (encima) {
+        fill(160, 82, 30); // Marrón más clarito
+        cursor(HAND);      // Manito del mouse
+    } else {
+        fill(139, 69, 19); // Marrón oscuro
+    }
+    
+    stroke(217, 164, 65); // Borde dorado
+    strokeWeight(2);
+    rect(x, y, ancho, alto, 8); // Caja
+    
+    fill(255); // Texto blanco
+    textSize(14);
+    textAlign(CENTER, CENTER);
+    text("← Menú", x + ancho / 2, y + alto / 2);
+    noStroke();
 }

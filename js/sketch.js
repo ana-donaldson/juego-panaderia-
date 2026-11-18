@@ -5,6 +5,8 @@
 let estado = "menu";
 let modoSeleccionado = "cajero"; // ✅ AHORA ARRANCA EN CAJERO POR DEFECTO
 
+let confirmandoSalida = false; 
+
 // Variables del Cajero
 let clienteY = 0;
 let clienteDestinoY = 0;
@@ -139,7 +141,7 @@ function setup() {
     // En setup(), junto a las otras cargas:
 cargarImagenOpcional('assets/recetas/medialuna.jpg', imagenesDecoraciones, "Medialunas");
 cargarImagenOpcional('assets/productos/medialuna.jpg', imagenesDecoraciones, "Medialunas"); // Por si la tenés en productos
-    // En setup(), donde cargás las imágenes de las decoraciones:
+   
     cargarImagenOpcional('assets/recetas/factura_lisa.jpg', imagenesDecoraciones, "Facturas"); 
 cargarImagenOpcional('assets/recetas/galleta_base.jpg', imagenesDecoraciones, "Galletas");
 
@@ -151,6 +153,9 @@ cargarImagenOpcional('assets/recetas/galleta_base.jpg', imagenesDecoraciones, "G
     }
 
     createCanvas(900, 600);
+      let canvas = createCanvas(900, 600);
+    canvas.style('background', 'transparent'); // Le decimos que no tenga fondo
+    
     textAlign(CENTER, CENTER);
     textSize(20);
     clienteY = height + 100;
@@ -158,6 +163,7 @@ cargarImagenOpcional('assets/recetas/galleta_base.jpg', imagenesDecoraciones, "G
 }
 
 function draw() {
+    clear();
     cursor(ARROW);
     
     // LÓGICA DEL HORNO
@@ -191,11 +197,11 @@ function draw() {
     }
 
     if (estado === "menu") {
-        dibujarFondo();
+      //  dibujarFondo();
         mostrarMenu(modoSeleccionado); // ✅ Le pasamos el modo actual
         dibujarRanking();
     } else if (estado === "instrucciones") {
-        dibujarFondo();
+       dibujarFondo();
         if (modoSeleccionado === "cajero") {
             mostrarInstrucciones(); 
         } else {
@@ -234,6 +240,10 @@ function draw() {
     // Reloj de la partida
     if (tiempoInicio > 0 && (estado.startsWith("cajero_escena") || estado.startsWith("cocinero_escena") || estado === "fin")) {
         dibujarTemporizador();
+    }
+
+     if (estado !== "menu" && estado !== "instrucciones") {
+        dibujarBotonInicio();
     }
 }
 
@@ -564,6 +574,20 @@ function avanzarDesdeHorno() {
 // EVENTOS DEL MOUSE
 // ============================================
    function mousePressed() {
+     // ✅ DETECTAR CLIC EN EL BOTÓN DE INICIO
+    if (estado !== "menu" && estado !== "instrucciones") {
+       let x = width - 120; // 👈 El mismo cambio acá
+        let y = 60;
+        let ancho = 100;
+        let alto = 35;
+
+        if (mouseX > x && mouseX < x + ancho && mouseY > y && mouseY < y + alto) {
+            // Si hace clic, reiniciamos y volvemos al menú
+            reiniciarJuego();
+            estado = "menu";
+            return; // Cortamos la ejecución
+        }
+    }
     // ✅ QUITAR PRODUCTO DE LA BOLSA
     if (estado === "cajero_escena3" && bolsa.length > 0) {
         let inicioXBolsa = width / 2 - 170;

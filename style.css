@@ -9,12 +9,26 @@ body {
     justify-content: center;
     align-items: center;
     min-height: 100vh;
-    background: #f5e6d3;
+    background: transparent; /* ✅ Sin fondo blanco */
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    overflow: hidden; /* Evita scroll si el video es muy grande */
+}
+
+/* ✅ ESTILO DEL VIDEO */
+#video-fondo {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    object-fit: cover; /* Hace que el video llene la pantalla sin deformarse */
+    z-index: -1; /* Lo manda al fondo de todo */
 }
 
 canvas {
     border-radius: 12px;
-    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.25);
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
     display: block;
+    position: relative;
+    z-index: 1; /* El canvas va adelante del video */
 }
