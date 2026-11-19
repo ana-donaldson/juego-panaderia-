@@ -7,7 +7,11 @@ let modoSeleccionado = "cajero"; // ✅ AHORA ARRANCA EN CAJERO POR DEFECTO
 
 let confirmandoSalida = false; 
 
+let musicaFondo;
+
 // Variables del Cajero
+let sonidoBoton;
+let sonidoMoneda; 
 let clienteY = 0;
 let clienteDestinoY = 0;
 let clienteVisible = false;
@@ -93,8 +97,19 @@ let imagenesIngredientes = {};
 let ingredientesEnBowl = [];
 let imagenesDecoraciones = {};
 
+let imagenesFinalesTorta = {};
+let imagenesFinalesFactura = {};
+let imagenesFinalesGalleta = {};
+let imagenesFinalesAlfajor = {};
+
 
 function preload() {
+    // ✅ Cargamos el sonido
+    soundFormats('mp3', 'wav'); 
+    sonidoBoton = loadSound('sonidos/boton.mp3');
+    sonidoMoneda = loadSound('sonidos/moneda.mp3');
+    musicaFondo = loadSound('sonidos/musica.mp3');
+
     imgCliente = loadImage('assets/persona1.png');
     imgMostrador = loadImage('assets/mueblefeo.png');
     
@@ -131,7 +146,15 @@ function cargarImagenOpcional(ruta, destino, clave) {
     loadImage(ruta, img => { destino[clave] = img; }, () => {});
 }
 
+function iniciarMusica() {
+    if (musicaFondo && !musicaFondo.isPlaying()) {
+        musicaFondo.loop();
+    }
+}
+
 function setup() {
+sonidoBoton.setVolume(0.3);
+
     cargarImagenOpcional('assets/recetas/masa.jpg', imagenesRecetas, "Masa");
     cargarImagenOpcional('assets/productos/torta.jpg', imagenesProductos, "Torta");
     cargarImagenOpcional('assets/recetas/torta.jpg', imagenesRecetas, "Tortas");
@@ -144,9 +167,53 @@ cargarImagenOpcional('assets/productos/medialuna.jpg', imagenesDecoraciones, "Me
    
     cargarImagenOpcional('assets/recetas/factura_lisa.jpg', imagenesDecoraciones, "Facturas"); 
 cargarImagenOpcional('assets/recetas/galleta_base.jpg', imagenesDecoraciones, "Galletas");
+cargarImagenOpcional('assets/recetas/alfajor_base.jpg', imagenesDecoraciones, "Alfajores");
+
+// Imágenes finales de las cinco combinaciones de tortas
+cargarImagenOpcional('assets/recetas/torta/chocolate_coco.jpg', imagenesFinalesTorta, "chocolate_coco");
+
+cargarImagenOpcional('assets/recetas/torta/frutilla_cremapastelera.jpg', imagenesFinalesTorta, "frutilla_cremapastelera");
+
+cargarImagenOpcional('assets/recetas/torta/dulceleche_gramas.jpg', imagenesFinalesTorta, "dulceleche_gramas");
+
+cargarImagenOpcional('assets/recetas/torta/chips_coco.jpg', imagenesFinalesTorta, "chips_coco");
+
+cargarImagenOpcional('assets/recetas/torta/baño_vainilla.jpg', imagenesFinalesTorta, "baño_vainilla");
 
 
-    // ---- Pintado con huevo: una imagen "sin" y otra "con" huevo por receta que lo usa ----
+// Imágenes finales de las cinco combinaciones de facturas
+cargarImagenOpcional('assets/recetas/factura/chocolate_cocoF.jpg', imagenesFinalesFactura, "chocolate_coco");
+
+cargarImagenOpcional('assets/recetas/factura/frutilla_cremapasteleraF.jpg', imagenesFinalesFactura, "frutilla_cremapastelera");
+
+cargarImagenOpcional('assets/recetas/factura/dulceleche_gramasF.jpg', imagenesFinalesFactura, "dulceleche_gramas");
+
+cargarImagenOpcional('assets/recetas/factura/chips_cocoF.jpg', imagenesFinalesFactura, "chips_coco");
+
+cargarImagenOpcional('assets/recetas/factura/baño_vainillaF.jpg', imagenesFinalesFactura, "baño_vainilla");
+ 
+// Imágenes finales de las cinco combinaciones de galletas
+cargarImagenOpcional('assets/recetas/galleta/chocolate_cocoG.jpg', imagenesFinalesGalleta, "chocolate_coco");
+
+cargarImagenOpcional('assets/recetas/galleta/frutilla_cremapasteleraG.jpg', imagenesFinalesGalleta, "frutilla_cremapastelera");
+
+cargarImagenOpcional('assets/recetas/galleta/dulceleche_gramasG.jpg', imagenesFinalesGalleta, "dulceleche_gramas");
+
+cargarImagenOpcional('assets/recetas/galleta/chips_cocoG.jpg', imagenesFinalesGalleta, "chips_coco");
+
+cargarImagenOpcional('assets/recetas/galleta/baño_vainillaG.jpg', imagenesFinalesGalleta, "baño_vainilla");
+
+// Imágenes finales de las cinco combinaciones de alfajores
+cargarImagenOpcional('assets/recetas/alfajor/chocolate_cocoA.jpg', imagenesFinalesAlfajor, "chocolate_coco");
+
+cargarImagenOpcional('assets/recetas/alfajor/frutilla_cremapasteleraA.jpg', imagenesFinalesAlfajor, "frutilla_cremapastelera");
+
+cargarImagenOpcional('assets/recetas/alfajor/dulceleche_gramasA.jpg', imagenesFinalesAlfajor, "dulceleche_gramas");
+
+cargarImagenOpcional('assets/recetas/alfajor/chips_cocoA.jpg', imagenesFinalesAlfajor, "chips_coco");
+
+cargarImagenOpcional('assets/recetas/alfajor/baño_vainillaA.jpg', imagenesFinalesAlfajor, "baño_vainilla");
+// ---- Pintado con huevo: una imagen "sin" y otra "con" huevo por receta que lo usa ----
     for (let n of ["Medialunas", "Tortas", "Facturas"]) {
         cargarImagenOpcional('assets/huevo/' + n.toLowerCase() + '_sin.png', imagenesPintado, n + "_sin");
         cargarImagenOpcional('assets/huevo/' + n.toLowerCase() + '_con.png', imagenesPintado, n + "_con");
@@ -160,6 +227,8 @@ cargarImagenOpcional('assets/recetas/galleta_base.jpg', imagenesDecoraciones, "G
     textSize(20);
     clienteY = height + 100;
     clienteDestinoY = height - 180;
+
+        musicaFondo.setVolume(0.3);
 }
 
 function draw() {
@@ -348,14 +417,17 @@ function comenzarPartida() {
 // EVENTOS DEL TECLADO
 // ============================================
 function keyPressed() {
+    iniciarMusica();
     // ==========================================
     // MENÚ
     // ==========================================
     if (estado === "menu") {
         if (keyCode === UP_ARROW || keyCode === DOWN_ARROW) {
+              if (sonidoBoton) sonidoBoton.play();
             modoSeleccionado = (modoSeleccionado === "cajero") ? "cocinero" : "cajero";
         }
         if (keyCode === ENTER || key === 'Enter') {
+              if (sonidoBoton) sonidoBoton.play();
             estado = "instrucciones";
         }
         return; // ✅ ACÁ CIERRA EL MENÚ Y CORTA PARA QUE NO SIGA DE LARGO
@@ -573,32 +645,42 @@ function avanzarDesdeHorno() {
 // ============================================
 // EVENTOS DEL MOUSE
 // ============================================
-   function mousePressed() {
-     // ✅ DETECTAR CLIC EN EL BOTÓN DE INICIO
+  function mousePressed() {
+    iniciarMusica();
+    // ✅ DETECTAR CLIC EN EL BOTÓN DE INICIO
     if (estado !== "menu" && estado !== "instrucciones") {
-       let x = width - 120; // 👈 El mismo cambio acá
+        let x = width - 120; 
         let y = 60;
         let ancho = 100;
         let alto = 35;
 
         if (mouseX > x && mouseX < x + ancho && mouseY > y && mouseY < y + alto) {
-            // Si hace clic, reiniciamos y volvemos al menú
+            if (sonidoBoton) sonidoBoton.play(); // ✅ SUENA EL BOTÓN
             reiniciarJuego();
             estado = "menu";
-            return; // Cortamos la ejecución
+            return; 
         }
     }
-    // ✅ QUITAR PRODUCTO DE LA BOLSA
+
+       // ✅ QUITAR PRODUCTO DE LA BOLSA
     if (estado === "cajero_escena3" && bolsa.length > 0) {
         let inicioXBolsa = width / 2 - 170;
-        let yBolsa = 415;
+        let inicioYBolsa = 415;
         let anchoIcono = 40;
         let espacioIcono = 10;
+        let maxColumnas = 8;
 
         for (let i = 0; i < bolsa.length; i++) {
-            let x = inicioXBolsa + i * (anchoIcono + espacioIcono);
-            if (mouseX > x && mouseX < x + anchoIcono && mouseY > yBolsa - 20 && mouseY < yBolsa + 20) {
-                bolsa.splice(i, 1);
+            let col = i % maxColumnas;
+            let fila = Math.floor(i / maxColumnas);
+            
+            let x = inicioXBolsa + col * (anchoIcono + espacioIcono);
+            let y = inicioYBolsa + fila * 50;
+
+            // Verificamos si el clic fue en este producto específico
+            if (mouseX > x && mouseX < x + anchoIcono && mouseY > y - 20 && mouseY < y + 20) {
+                if (sonidoBoton) sonidoBoton.play();
+                bolsa.splice(i, 1); // Lo borramos
                 mostrarAvisoError("Producto quitado de la bolsa", color(200, 100, 0));
                 return; 
             }
@@ -607,40 +689,88 @@ function avanzarDesdeHorno() {
     
     // ✅ Si estamos en el menú, el clic también sirve para elegir
     if (estado === "menu") {
-        if (mouseY > 250 && mouseY < 310) { modoSeleccionado = "cajero"; estado = "instrucciones"; return; }
-        if (mouseY > 330 && mouseY < 390) { modoSeleccionado = "cocinero"; estado = "instrucciones"; return; }
+        if (mouseY > 250 && mouseY < 310) { 
+            if (sonidoBoton) sonidoBoton.play();
+            modoSeleccionado = "cajero"; estado = "instrucciones"; return; 
+        }
+        if (mouseY > 330 && mouseY < 390) { 
+            if (sonidoBoton) sonidoBoton.play();
+            modoSeleccionado = "cocinero"; estado = "instrucciones"; return; 
+        }
     }
 
+    // ✅ CLICS EN CARTELES INTERACTIVOS
     let cartel = cartelInteractivo();
     if (cartel && mouseSobreAviso(cartel.lineas, cartel.cx, cartel.cy, cartel.nivel)) {
+        if (sonidoBoton) sonidoBoton.play();
         cartel.accion();
         return;
     }
 
+    // ✅ SELECCIÓN DE RECETA
     if (estado === "cocinero_seleccion") {
-        let i = recetaBajoMouse(); if (i >= 0) iniciarReceta(i); return;
-    }
-    if (estado === "cocinero_escena1") {
-        let i = ingredienteBajoMouse(); if (i >= 0) { indiceIngredienteSeleccionado = i; agregarIngrediente(i); } return;
-    }
-    if (estado === "cocinero_escena3") {
-        let i = piezaBajoMouse(); if (i >= 0) { indiceProductoPintar = i; pintarProducto(i); } return;
-    }
-    if (estado === "cocinero_escena4") {
-        if (hayDeslizador() && mouseSobreDeslizador()) { arrastrandoDeslizador = true; desplazarDesdeMouse(); return; }
-        let i = decoracionBajoMouse(); if (i >= 0) { indiceDecoracionSeleccionada = i; agregarDecoracion(i); } return;
+        let i = recetaBajoMouse(); 
+        if (i >= 0) { 
+            if (sonidoBoton) sonidoBoton.play();
+            iniciarReceta(i); 
+        } 
+        return;
     }
 
+    // ✅ AGREGAR INGREDIENTE
+    if (estado === "cocinero_escena1") {
+        let i = ingredienteBajoMouse(); 
+        if (i >= 0) { 
+            if (sonidoBoton) sonidoBoton.play();
+            indiceIngredienteSeleccionado = i; 
+            agregarIngrediente(i); 
+        } 
+        return;
+    }
+
+    // ✅ PINTAR CON HUEVO
+    if (estado === "cocinero_escena3") {
+        let i = piezaBajoMouse(); 
+        if (i >= 0) { 
+            if (sonidoBoton) sonidoBoton.play();
+            indiceProductoPintar = i; 
+            pintarProducto(i); 
+        } 
+        return;
+    }
+
+    // ✅ DECORACIONES Y DESLIZADOR
+    if (estado === "cocinero_escena4") {
+        if (hayDeslizador() && mouseSobreDeslizador()) { 
+            if (sonidoBoton) sonidoBoton.play();
+            arrastrandoDeslizador = true; 
+            desplazarDesdeMouse(); 
+            return; 
+        }
+        let i = decoracionBajoMouse(); 
+        if (i >= 0) { 
+            if (sonidoBoton) sonidoBoton.play();
+            indiceDecoracionSeleccionada = i; 
+            agregarDecoracion(i); 
+        } 
+        return;
+    }
+
+    // ✅ BOTÓN COBRAR Y PRODUCTOS DEL CAJERO
     if (estado === "cajero_escena3") {
-        if (botonCobrarVisible() && mouseSobreBotonCobrar()) { irACobrar(); return; }
+        if (botonCobrarVisible() && mouseSobreBotonCobrar()) { 
+            if (sonidoBoton) sonidoBoton.play();
+            irACobrar(); 
+            return; 
+        }
         let i = productoBajoMouse();
         if (i >= 0) {
+            if (sonidoBoton) sonidoBoton.play();
             productoSeleccionado = i;
             arrastrando = { indice: i, movido: false, xIni: mouseX, yIni: mouseY };
         }
     }
-} // ✅ ACÁ VA LA LLAVE QUE FALTABA PARA CERRAR EL MOUSEPRESSED
-
+} // ✅ ACÁ VA LA LLAVE QUE CIERRA EL MOUSEPRESSED
 // ✅ FUNCIÓN QUE FALTABA PARA DETECTAR DÓNDE ESTÁ EL MOUSE
 function rectProducto(i) {
     let cantidad = productos.length, ancho = 132, alto = 150, espacio = 10;

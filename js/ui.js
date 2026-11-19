@@ -1,5 +1,10 @@
+  let sonidoLlegada = new Audio("sonidos/llegada.mp3");
 
 
+sonidoLlegada.volume = 1;
+sonidoLlegada.preload = "auto";
+
+let ClienteAnterior=-1;
 
 
 function dibujarFondo() {
@@ -111,20 +116,39 @@ function mostrarInterfazCajero() {
 
     textAlign(CENTER, CENTER);
 
-    if (clienteVisible && !mostrandoResultado) {
+  
 
-        let rect1X = 200;
-        let rect1Y = 80;
-        let rect1W = 500;
-        let rect1H = 120;
 
-        fill(255, 255, 255, 220);
-        rect(rect1X, rect1Y, rect1W, rect1H, 10);
 
-        fill(0);
-        textSize(18);
-        text("🧑 " + clientes[clienteActual].nombre, 450, 110);
 
+  if (clienteVisible && !mostrandoResultado) {
+
+    // Detectar cuando llega un cliente nuevo
+    if (clienteAnterior !== clienteActual) {
+
+        clienteAnterior = clienteActual;
+
+        sonidoLlegada.pause();
+        sonidoLlegada.currentTime = 0;
+
+        sonidoLlegada.play().catch(error => {
+            console.log("Error al reproducir llegada:", error);
+        });
+    }
+
+    let rect1X = 200;
+    let rect1Y = 80;
+    let rect1W = 500;
+    let rect1H = 120;
+
+    fill(255, 255, 255, 220);
+    rect(rect1X, rect1Y, rect1W, rect1H, 10);
+
+    fill(0);
+    textSize(18);
+    text("🧑 " + clientes[clienteActual].nombre, 450, 110);
+}
+}
         textSize(15);
         let pedidoTexto = "";
         for (let i = 0; i < pedidoActual.length; i++) {
@@ -196,12 +220,12 @@ function mostrarInterfazCajero() {
         textSize(13);
         text("ESC para volver al menú", width / 2, height - 20);
 
-    } else if (clienteAnimando) {
+     if (clienteAnimando) {
         fill(100);
         textSize(20);
         text("👋 El cliente está llegando...", width / 2, height / 2 + 50);
     }
-}
+
 
 // ============================================
 // PANTALLA FINAL
@@ -403,33 +427,41 @@ function mostrarInterfazEscena3() {
         text("(vacía) — hacé clic o arrastrá productos acá", width / 2, 430);
     } else {
         let inicioXBolsa = width / 2 - 170;
-        let yBolsa = 415;
+        let inicioYBolsa = 415; // Posición Y de la primera fila
         let anchoIcono = 40;
         let espacioIcono = 10;
+        let maxColumnas = 8; // ✅ Cantidad máxima de productos por fila
 
         for (let i = 0; i < bolsa.length; i++) {
             let prod = bolsa[i];
-            let x = inicioXBolsa + i * (anchoIcono + espacioIcono);
             
+            // ✅ Calculamos la columna y la fila
+            let col = i % maxColumnas;
+            let fila = Math.floor(i / maxColumnas);
+            
+            // Calculamos la posición X e Y
+            let x = inicioXBolsa + col * (anchoIcono + espacioIcono);
+            let y = inicioYBolsa + fila * 50; // 50 de separación entre filas
+
             // Si el mouse está encima de este icono
-            let sobreIcono = mouseX > x && mouseX < x + anchoIcono && mouseY > yBolsa - 20 && mouseY < yBolsa + 20;
+            let sobreIcono = mouseX > x && mouseX < x + anchoIcono && mouseY > y - 20 && mouseY < y + 20;
 
             if (sobreIcono) {
                 // Si pasa el mouse, mostramos fondo rojo y la "X"
                 fill(255, 200, 200);
-                rect(x, yBolsa - 20, anchoIcono, 40, 5);
+                rect(x, y - 20, anchoIcono, 40, 5);
                 fill(200, 0, 0);
                 textSize(20);
-                text("X", x + anchoIcono/2, yBolsa);
+                text("X", x + anchoIcono/2, y);
                 cursor(HAND);
             } else {
                 // Si no, mostramos la imagen del producto
                 let img = imagenesProductos[prod.nombre];
                 if (img) {
-                    image(img, x, yBolsa - 20, anchoIcono, 40);
+                    image(img, x, y - 20, anchoIcono, 40);
                 } else {
                     fill(200);
-                    rect(x, yBolsa - 20, anchoIcono, 40);
+                    rect(x, y - 20, anchoIcono, 40);
                 }
             }
         }
@@ -1003,6 +1035,6 @@ function dibujarBotonInicio() {
     fill(255); // Texto blanco
     textSize(14);
     textAlign(CENTER, CENTER);
-    text("← Menú", x + ancho / 2, y + alto / 2);
+    text("regresar al menu", x + ancho / 2, y + alto / 2);
     noStroke();
 }

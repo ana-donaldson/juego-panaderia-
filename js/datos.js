@@ -30,7 +30,7 @@ const recetas = [
         temperatura: 180,
         tiempoIdeal: 15,
         necesitaBrillo: true,
-        necesitaDecoracion: true,
+        necesitaDecoracion: false,
         decoraciones: ["Azúcar Impalpable", "Dulce de Leche", "Crema Pastelera", "Baño de Chocolate"]
     },
     {
@@ -106,16 +106,20 @@ const decoracionesDisponibles = [
 // Cuántas decoraciones se le asignan al azar al jugador en cada receta
 const DECORACIONES_POR_RECETA = 2;
 
-// Elige al azar (sin repetir) las decoraciones que pide la receta, dentro de las que le corresponden
-function sortearDecoraciones(receta) {
-    let pool = receta.decoraciones.slice();
-    for (let i = pool.length - 1; i > 0; i--) {   // mezclar
-        let j = numeroAlAzar(0, i);
-        [pool[i], pool[j]] = [pool[j], pool[i]];
-    }
-    return pool.slice(0, DECORACIONES_POR_RECETA);
-}
+// Las cinco combinaciones fijas de decoraciones
+const combinacionesDecoracion = [
+    ["Crema de Chocolate", "Coco Rallado"],
+    ["Frutillas", "Crema Pastelera"],
+    ["Dulce de Leche", "Granas de Colores"],
+    ["Chips de Chocolate", "Coco Rallado"],
+    ["Baño de Chocolate", "Crema de Vainilla"]
+];
 
+// Elige al azar una de las cinco combinaciones
+function sortearDecoraciones(receta) {
+    let indice = numeroAlAzar(0, combinacionesDecoracion.length - 1);
+    return combinacionesDecoracion[indice].slice();
+}
 // ============================================
 // RANDOMIZER DEL MODO CAJERO
 // ============================================

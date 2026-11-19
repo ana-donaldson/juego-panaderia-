@@ -328,26 +328,66 @@ function mostrarInterfazCocinero3() {
     textSize(28);
     text("🎂 DECORACIÓN FINAL", width / 2, 50);
     
-    // --- DIBUJO DEL PRODUCTO ---
-    let imagenBase = imagenesDecoraciones["base"]; 
-    
+   // --- DIBUJO DEL PRODUCTO ---
+let imagenBase = imagenesDecoraciones["base"];
+
+let decoracionTerminada =
+    (recetaActual.nombre === "Tortas" ||
+     recetaActual.nombre === "Facturas" ||
+     recetaActual.nombre === "Galletas" ||
+     recetaActual.nombre === "Alfajores") &&
+    decoracionesElegidas.length >= 2;
+
+if (decoracionTerminada) {
+    let imagenFinal;
+
+    if (recetaActual.nombre === "Tortas") {
+    imagenFinal = obtenerImagenFinalTorta();
+} else if (recetaActual.nombre === "Facturas") {
+    imagenFinal = obtenerImagenFinalFactura();
+} else if (recetaActual.nombre === "Galletas") {
+    imagenFinal = obtenerImagenFinalGalleta();
+} else if (recetaActual.nombre === "Alfajores") {
+    imagenFinal = obtenerImagenFinalAlfajor();
+}
+
+    if (imagenFinal) {
+        image(imagenFinal, width / 2 - 90, 80, 180, 120);
+    } else {
+        fill(200, 150, 100);
+        rect(width / 2 - 90, 80, 180, 120, 20);
+    }
+
+} else {
     if (recetaActual.nombre === "Medialunas" && imagenesDecoraciones["Medialunas"]) {
-        imagenBase = imagenesDecoraciones["Medialunas"]; 
+        imagenBase = imagenesDecoraciones["Medialunas"];
     } else if (recetaActual.nombre === "Facturas" && imagenesDecoraciones["Facturas"]) {
-        imagenBase = imagenesDecoraciones["Facturas"]; 
+        imagenBase = imagenesDecoraciones["Facturas"];
     } else if (recetaActual.nombre === "Galletas" && imagenesDecoraciones["Galletas"]) {
-        imagenBase = imagenesDecoraciones["Galletas"]; 
+        imagenBase = imagenesDecoraciones["Galletas"];
     } else if (recetaActual.nombre === "Alfajores" && imagenesDecoraciones["Alfajores"]) {
-        imagenBase = imagenesDecoraciones["Alfajores"]; // ✅ Acordate de cargar esta imagen
+        imagenBase = imagenesDecoraciones["Alfajores"];
     }
 
     if (imagenBase) {
         image(imagenBase, width / 2 - 90, 80, 180, 120);
     } else {
-        fill(200, 150, 100); 
+        fill(200, 150, 100);
         rect(width / 2 - 90, 80, 180, 120, 20);
     }
 
+    // Mostrar decoraciones mientras todavía se está preparando
+    if (typeof decoracionesElegidas !== 'undefined') {
+        for (let i = 0; i < decoracionesElegidas.length; i++) {
+            let deco = decoracionesElegidas[i];
+            let imgDeco = imagenesDecoraciones[deco];
+
+            if (imgDeco) {
+                image(imgDeco, width / 2 - 90, 80, 180, 120);
+            }
+        }
+    }
+}
     // Superponemos las decoraciones elegidas
     if (typeof decoracionesElegidas !== 'undefined') {
         for (let i = 0; i < decoracionesElegidas.length; i++) {
@@ -421,6 +461,59 @@ function mostrarInterfazCocinero3() {
         textAlign(CENTER, CENTER);
         dibujarAviso(mensaje, width / 2, 270, "suave", mensajeColor, alfaMensaje());
     }
+    function obtenerImagenFinalTorta() {
+    let decoraciones = decoracionesRequeridas.slice().sort();
+
+    const combinaciones = {
+        "Coco Rallado|Crema de Chocolate": "chocolate_coco",
+        "Crema Pastelera|Frutillas": "frutilla_cremapastelera",
+        "Dulce de Leche|Granas de Colores": "dulceleche_gramas",
+        "Chips de Chocolate|Coco Rallado": "chips_coco",
+        "Baño de Chocolate|Crema de Vainilla": "baño_vainilla"
+    };
+
+    return imagenesFinalesTorta[combinaciones[decoraciones.join("|")]];
+}
+
+function obtenerImagenFinalFactura() {
+    let decoraciones = decoracionesRequeridas.slice().sort();
+
+    const combinaciones = {
+        "Coco Rallado|Crema de Chocolate": "chocolate_coco",
+        "Crema Pastelera|Frutillas": "frutilla_cremapastelera",
+        "Dulce de Leche|Granas de Colores": "dulceleche_gramas",
+        "Chips de Chocolate|Coco Rallado": "chips_coco",
+        "Baño de Chocolate|Crema de Vainilla": "baño_vainilla"
+    };
+
+    return imagenesFinalesFactura[combinaciones[decoraciones.join("|")]];
+}
+function obtenerImagenFinalGalleta() {
+    let decoraciones = decoracionesRequeridas.slice().sort();
+
+    const combinaciones = {
+        "Coco Rallado|Crema de Chocolate": "chocolate_coco",
+        "Crema Pastelera|Frutillas": "frutilla_cremapastelera",
+        "Dulce de Leche|Granas de Colores": "dulceleche_gramas",
+        "Chips de Chocolate|Coco Rallado": "chips_coco",
+        "Baño de Chocolate|Crema de Vainilla": "baño_vainilla"
+    };
+
+    return imagenesFinalesGalleta[combinaciones[decoraciones.join("|")]];
+}
+function obtenerImagenFinalAlfajor() {
+    let decoraciones = decoracionesRequeridas.slice().sort();
+
+    const combinaciones = {
+        "Coco Rallado|Crema de Chocolate": "chocolate_coco",
+        "Crema Pastelera|Frutillas": "frutilla_cremapastelera",
+        "Dulce de Leche|Granas de Colores": "dulceleche_gramas",
+        "Chips de Chocolate|Coco Rallado": "chips_coco",
+        "Baño de Chocolate|Crema de Vainilla": "baño_vainilla"
+    };
+
+    return imagenesFinalesAlfajor[combinaciones[decoraciones.join("|")]];
+}
 }
 // ============================================
 // ESCENA 0: ELEGIR QUÉ PRODUCTO PREPARAR

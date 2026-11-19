@@ -66,6 +66,7 @@ function verificarVuelto() {
 
     // --- CASO 1: Vuelto EXACTO ---
     if (ingresado === correcto) {
+          if (sonidoMoneda) sonidoMoneda.play();
         mensaje = "✅ ¡Perfecto! Vuelto exacto de $" + correcto.toFixed(2) + " 🎉";
         mensajeColor = color(0, 150, 0);
         puntos += PUNTOS_POR_VUELTO;
@@ -141,6 +142,7 @@ function verificarVuelto() {
 }
 
 function avanzarSinVuelto() {
+      if (sonidoMoneda) sonidoMoneda.play();
     mensaje = "✅ ¡Pago exacto! Cliente feliz 🎉";
     mensajeColor = color(0, 150, 0);
     puntos += PUNTOS_POR_VUELTO;   // pago exacto = el vuelto ($0) también está bien dado
