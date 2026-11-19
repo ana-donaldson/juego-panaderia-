@@ -32,3 +32,9 @@ canvas {
     position: relative;
     z-index: 1; /* El canvas va adelante del video */
 }
+
+/* En el menú no hay "cuadro": se ve solo el video de fondo con los botones y las tablas encima */
+body.en-menu canvas {
+    box-shadow: none;
+    border-radius: 0;
+}

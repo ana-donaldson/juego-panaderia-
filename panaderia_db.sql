@@ -87,14 +87,14 @@ ALTER TABLE `jugadores`
 --
 ALTER TABLE `partidas_cajero`
   ADD PRIMARY KEY (`id`),
-  ADD KEY `jugador_id` (`jugador_id`);
+  ADD UNIQUE KEY `jugador_id` (`jugador_id`);
 
 --
 -- Indices de la tabla `partidas_cocinero`
 --
 ALTER TABLE `partidas_cocinero`
   ADD PRIMARY KEY (`id`),
-  ADD KEY `jugador_id` (`jugador_id`);
+  ADD UNIQUE KEY `jugador_id` (`jugador_id`);
 
 --
 -- AUTO_INCREMENT de las tablas volcadas
@@ -138,3 +138,4 @@ COMMIT;
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
 /*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
+
