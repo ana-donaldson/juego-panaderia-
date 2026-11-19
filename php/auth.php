@@ -17,6 +17,12 @@ if ($accion === 'registro') {
         exit;
     }
 
+    // Solo proveedores de correo permitidos
+    if (!filter_var($email, FILTER_VALIDATE_EMAIL) || !dominioCorreoPermitido($email)) {
+        echo json_encode(['ok' => false, 'mensaje' => 'Solo se aceptan correos de Gmail, Outlook, Hotmail, Yahoo, iCloud, Live, MSN, AOL o Proton.']);
+        exit;
+    }
+
     // Verificar email duplicado
     $stmt = $conn->prepare("SELECT id FROM jugadores WHERE email = ?");
     $stmt->bind_param("s", $email);
@@ -65,14 +71,22 @@ if ($accion === 'registro') {
         exit;
     }
 
-    $stmt = $conn->prepare("SELECT id, nombre_usuario, contraseña_hash FROM jugadores WHERE nombre_usuario = ? OR email = ?");
+    // Si ingresa un correo, tiene que ser de un proveedor permitido
+    if (strpos($usuario, '@') !== false && !dominioCorreoPermitido($usuario)) {
+        echo json_encode(['ok' => false, 'mensaje' => 'Solo se aceptan correos de Gmail, Outlook, Hotmail, Yahoo, iCloud, Live, MSN, AOL o Proton.']);
+        exit;
+    }
+
+    $stmt = $conn->prepare("SELECT id, nombre_usuario, email, contraseña_hash FROM jugadores WHERE nombre_usuario = ? OR email = ?");
     $stmt->bind_param("ss", $usuario, $usuario);
     $stmt->execute();
     $resultado = $stmt->get_result();
 
     if ($resultado->num_rows === 1) {
         $user = $resultado->fetch_assoc();
-        if (password_verify($contraseña, $user['contraseña_hash'])) {
+        if (!dominioCorreoPermitido($user['email'])) {
+            echo json_encode(['ok' => false, 'mensaje' => 'Solo se aceptan correos de Gmail, Outlook, Hotmail, Yahoo, iCloud, Live, MSN, AOL o Proton.']);
+        } else if (password_verify($contraseña, $user['contraseña_hash'])) {
             echo json_encode([
                 'ok' => true,
                 'mensaje' => '¡Bienvenido!',
@@ -95,3 +109,4 @@ if ($accion === 'registro') {
 
 $conn->close();
 ?>
+

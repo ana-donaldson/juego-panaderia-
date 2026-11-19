@@ -11,8 +11,14 @@ if (empty($usuario_input) || empty($contraseña)) {
     exit;
 }
 
+// Si ingresa un correo, tiene que ser de un proveedor permitido
+if (strpos($usuario_input, '@') !== false && !dominioCorreoPermitido($usuario_input)) {
+    echo json_encode(['success' => false, 'mensaje' => 'Solo se aceptan correos de Gmail, Outlook, Hotmail, Yahoo, iCloud, Live, MSN, AOL o Proton.']);
+    exit;
+}
+
 // Buscar por nombre de usuario O por email
-$stmt = $conn->prepare("SELECT id, nombre_usuario, contraseña_hash FROM jugadores WHERE nombre_usuario = ? OR email = ?");
+$stmt = $conn->prepare("SELECT id, nombre_usuario, email, contraseña_hash FROM jugadores WHERE nombre_usuario = ? OR email = ?");
 $stmt->bind_param("ss", $usuario_input, $usuario_input);
 $stmt->execute();
 $resultado = $stmt->get_result();
@@ -20,7 +26,9 @@ $resultado = $stmt->get_result();
 if ($resultado->num_rows === 1) {
     $usuario = $resultado->fetch_assoc();
 
-    if (password_verify($contraseña, $usuario['contraseña_hash'])) {
+    if (!dominioCorreoPermitido($usuario['email'])) {
+        echo json_encode(['success' => false, 'mensaje' => 'Solo se aceptan correos de Gmail, Outlook, Hotmail, Yahoo, iCloud, Live, MSN, AOL o Proton.']);
+    } else if (password_verify($contraseña, $usuario['contraseña_hash'])) {
         echo json_encode([
             'success' => true,
             'jugador_id' => $usuario['id'],
@@ -36,3 +44,4 @@ if ($resultado->num_rows === 1) {
 $stmt->close();
 $conn->close();
 ?>
+

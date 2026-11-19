@@ -28,6 +28,11 @@ if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
     exit;
 }
 
+if (!dominioCorreoPermitido($email)) {
+    echo json_encode(['success' => false, 'mensaje' => 'Solo se aceptan correos de Gmail, Outlook, Hotmail, Yahoo, iCloud, Live, MSN, AOL o Proton.']);
+    exit;
+}
+
 if (strlen($contraseña) < 8) {
     echo json_encode(['success' => false, 'mensaje' => 'La contraseña debe tener al menos 8 caracteres']);
     exit;
@@ -82,3 +87,4 @@ if ($stmt->execute()) {
 $stmt->close();
 $conn->close();
 ?>
+

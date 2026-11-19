@@ -5,7 +5,7 @@ $conn->set_charset('utf8mb4');
 
 // Función para obtener el top 10 de una tabla específica
 function obtenerRanking($conn, $tabla) {
-    $sql = "SELECT j.nombre_usuario AS nombre, MAX(p.puntuacion) AS puntaje
+    $sql = "SELECT j.nombre_usuario AS nombre, SUM(p.puntuacion) AS puntaje
             FROM $tabla p
             JOIN jugadores j ON j.id = p.jugador_id
             GROUP BY j.id, j.nombre_usuario
@@ -39,3 +39,4 @@ echo json_encode([
 
 $conn->close();
 ?>
+
