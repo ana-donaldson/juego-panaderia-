@@ -2,7 +2,12 @@
 // MODO CAJERO - Lógica completa
 // ============================================
 
+// Puntos / clientes ganados que todavía no se enviaron al servidor (se suman a lo anterior)
+let pendCajero = { puntos: 0, clientes: 0 };
+let pendCocinero = { puntos: 0, recetas: 0 };
+
 function cargarCliente(indice) {
+    if (indice > 0) pendCajero.clientes++;   // el cliente anterior ya fue atendido
     if (indice >= clientes.length) {
         estado = "fin";
         guardarPartidaEnServidor();
@@ -70,6 +75,7 @@ function verificarVuelto() {
         mensaje = "✅ ¡Perfecto! Vuelto exacto de $" + correcto.toFixed(2) + " 🎉";
         mensajeColor = color(0, 150, 0);
         puntos += PUNTOS_POR_VUELTO;
+        pendCajero.puntos += PUNTOS_POR_VUELTO;
         clientesAtendidos++;
         caja = Math.round((caja + totalCorrecto) * 100) / 100;
 
@@ -146,6 +152,7 @@ function avanzarSinVuelto() {
     mensaje = "✅ ¡Pago exacto! Cliente feliz 🎉";
     mensajeColor = color(0, 150, 0);
     puntos += PUNTOS_POR_VUELTO;   // pago exacto = el vuelto ($0) también está bien dado
+    pendCajero.puntos += PUNTOS_POR_VUELTO;
     clientesAtendidos++;
     caja = Math.round((caja + totalCorrecto) * 100) / 100;
 
@@ -214,22 +221,48 @@ function guardarPartidaEnServidor() {
     }
     resultadoGuardado = true;
 
-    let datos;
     if (modoSeleccionado === 'cocinero') {
-        datos = {
-            jugador_id: parseInt(jugador_id),
-            puntuacion: calcularPuntajeCocinero(),
-            modo: 'cocinero',
-            recetas_completadas: 1
-        };
+        // Puntaje de la receta menos lo que ya se fue sumando por etapas
+        // Solo si la receta se completó (no se perdieron todas las vidas) suma el resto del puntaje
+        if (vidasCocinero > 0) {
+            pendCocinero.puntos += Math.max(0, calcularPuntajeCocinero() - etapasRecetaPuntos);
+            pendCocinero.recetas++;
+        }
+        etapasRecetaPuntos = 0;
+        enviarProgreso('cocinero');
     } else {
+        enviarProgreso('cajero');
+    }
+}
+
+// Envía al servidor lo acumulado desde el último envío (el servidor lo SUMA al total del jugador).
+// Se llama al terminar la partida y al presionar ESC.
+function enviarProgreso(modo) {
+    let jugador_id = localStorage.getItem('jugador_id');
+    if (!jugador_id) return;
+
+    let datos, pend;
+    if (modo === 'cocinero') {
+        pend = { puntos: pendCocinero.puntos, recetas: pendCocinero.recetas };
+        if (pend.puntos === 0 && pend.recetas === 0) return;
         datos = {
             jugador_id: parseInt(jugador_id),
-            puntuacion: puntos,
+            puntuacion: pend.puntos,
+            modo: 'cocinero',
+            recetas_completadas: pend.recetas
+        };
+        pendCocinero.puntos = 0; pendCocinero.recetas = 0;
+    } else {
+        pend = { puntos: pendCajero.puntos, clientes: pendCajero.clientes };
+        if (pend.puntos === 0 && pend.clientes === 0) return;
+        datos = {
+            jugador_id: parseInt(jugador_id),
+            puntuacion: pend.puntos,
             modo: 'cajero',
-            clientes_atendidos: clientesAtendidos,
+            clientes_atendidos: pend.clientes,
             caja_final: caja
         };
+        pendCajero.puntos = 0; pendCajero.clientes = 0;
     }
 
     console.log("Guardando partida:", datos);
@@ -237,16 +270,18 @@ function guardarPartidaEnServidor() {
     fetch('php/guardar_partida.php', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(datos)
+        body: JSON.stringify(datos),
+        keepalive: true
     })
     .then(res => res.json())
     .then(data => {
-        console.log("Respuesta del servidor:", data);
-        if (data.success) {
-            console.log("✅ Partida guardada correctamente");
-        } else {
-            console.error("❌ Error al guardar:", data.mensaje);
-        }
+        if (!data.success) throw new Error(data.mensaje);
+        console.log("✅ Partida guardada correctamente");
     })
-    .catch(err => console.error("❌ Error de conexión:", err));
+    .catch(err => {
+        console.error("❌ Error al guardar:", err);
+        // no se pierde: vuelve a quedar pendiente para el próximo intento
+        if (modo === 'cocinero') { pendCocinero.puntos += pend.puntos; pendCocinero.recetas += pend.recetas; }
+        else { pendCajero.puntos += pend.puntos; pendCajero.clientes += pend.clientes; }
+    });
 }

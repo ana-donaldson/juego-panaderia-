@@ -4,7 +4,7 @@
 sonidoLlegada.volume = 1;
 sonidoLlegada.preload = "auto";
 
-let ClienteAnterior=-1;
+let clienteAnterior=-1;
 
 
 function dibujarFondo() {
@@ -41,14 +41,60 @@ function dibujarMostradorFormas() {
     fill(100, 70, 40);
     ellipse(width / 2, height - 100, 10, 10);
 }
+// Hover del menú: valor 0..1 que se suaviza (color + agrandar)
+const hoverMenu = { cajero: 0, cocinero: 0 };
+let menuFrame = -1;   // último frame en que se dibujó el menú
+
+function nombreJugadorMenu() {
+    try { return localStorage.getItem('panaderiaJugador') || 'Invitado'; }
+    catch (e) { return 'Invitado'; }
+}
+
+function dibujarBotonMenu(clave, etiqueta, cy, seleccionado) {
+    let sobre = mouseX >= width / 2 - 200 && mouseX <= width / 2 + 200 &&
+                mouseY >= cy - 30 && mouseY <= cy + 30;
+    hoverMenu[clave] = lerp(hoverMenu[clave], sobre ? 1 : 0, 0.2);
+    let h = hoverMenu[clave];
+
+    push();
+    translate(width / 2, cy);
+    scale(1 + 0.08 * h);                       // animación 1: agrandar
+    if (seleccionado) {
+        fill(lerpColor(color(255, 220, 100), color(255, 170, 60), h));   // animación 2: color
+        stroke(200, 150, 0);
+        strokeWeight(4);
+    } else {
+        fill(lerpColor(color(255, 255, 255, 150), color(255, 190, 110, 235), h));
+        noStroke();
+    }
+    rect(-200, -30, 400, 60, 10);
+    noStroke();
+    fill(0);
+    textSize(22);
+    text(etiqueta, 0, 0);
+    pop();
+    if (sobre) cursor(HAND);
+}
+
 function mostrarMenu(modoSeleccionado) {
-    // Título
-     textAlign(CENTER, CENTER);
-    fill(100, 50, 20);
+    menuFrame = frameCount;
+    // Título (el pan gira lento sobre su propio eje, siempre en sentido horario)
+    textAlign(CENTER, CENTER);
     textSize(50);
-    text("🥖 PANADERÍA", width / 2 + 3, 123);
+    let anchoTitulo = textWidth("PANADERÍA");
+    let anchoPan = 60, separacion = 12;
+    let xIni = width / 2 - (anchoPan + separacion + anchoTitulo) / 2;
+    let xTitulo = xIni + anchoPan + separacion + anchoTitulo / 2;
+    fill(100, 50, 20);
+    text("PANADERÍA", xTitulo + 3, 123);
     fill(139, 69, 19);
-    text("🥖 PANADERÍA", width / 2, 120);
+    text("PANADERÍA", xTitulo, 120);
+    push();
+    translate(xIni + anchoPan / 2, 120);
+    drawingContext.rotate(millis() * 0.0008);   // ~8 s por vuelta, sentido horario
+    fill(0);
+    text("🥖", 0, 0);
+    pop();
 
     fill(100, 50, 20);
     textSize(26);
@@ -56,42 +102,24 @@ function mostrarMenu(modoSeleccionado) {
     fill(80, 40, 10);
     text('"Reino del pastel"', width / 2, 170);
 
-    // OPCIÓN 1: MODO CAJERO
-    let yCajero = 280;
-    if (modoSeleccionado === "cajero") {
-        fill(255, 220, 100); // Brillo
-        stroke(200, 150, 0);
-        strokeWeight(4);
-    } else {
-        fill(255, 255, 255, 150);
-        noStroke();
-    }
-    rect(width / 2 - 200, yCajero - 30, 400, 60, 10);
-    noStroke();
-    fill(0);
-    textSize(22);
-    text("Modo Cajero", width / 2, yCajero);
+    // Bienvenida
+    fill(80, 40, 10);
+    textSize(20);
+    text("Te damos la bienvenida, " + nombreJugadorMenu(), width / 2, 215);
 
-    // OPCIÓN 2: MODO COCINERO
-    let yCocinero = 360;
-    if (modoSeleccionado === "cocinero") {
-        fill(255, 220, 100); // Brillo
-        stroke(200, 150, 0);
-        strokeWeight(4);
-    } else {
-        fill(255, 255, 255, 150);
-        noStroke();
-    }
-    rect(width / 2 - 200, yCocinero - 30, 400, 60, 10);
-    noStroke();
-    fill(0);
-    textSize(22);
-    text("Modo Cocinero", width / 2, yCocinero);
+    // OPCIÓN 1: MODO CAJERO / OPCIÓN 2: MODO COCINERO
+    dibujarBotonMenu("cajero", "Modo Cajero", 290, modoSeleccionado === "cajero");
+    dibujarBotonMenu("cocinero", "Modo Cocinero", 370, modoSeleccionado === "cocinero");
 
     // Instrucción
-     fill(100, 50, 20);
+    noStroke();
+    fill(100, 50, 20);
     textSize(16);
-    text("Usa ↑ ↓ para elegir y ENTER para jugar", width / 2, 480);
+    text("Usa ↑ ↓ para elegir y ENTER para jugar", width / 2, 440);
+
+    // Cerrar sesión
+    dibujarAviso("Cerrar sesión", width / 2, 510, "suave");
+    if (mouseSobreAviso("Cerrar sesión", width / 2, 510, "suave")) cursor(HAND);
 }
 // INTERFAZ DEL CAJERO
 
@@ -147,8 +175,7 @@ function mostrarInterfazCajero() {
     fill(0);
     textSize(18);
     text("🧑 " + clientes[clienteActual].nombre, 450, 110);
-}
-}
+
         textSize(15);
         let pedidoTexto = "";
         for (let i = 0; i < pedidoActual.length; i++) {
@@ -216,15 +243,14 @@ function mostrarInterfazCajero() {
             text(mensaje, width / 2, 460);
         }
 
-        fill(150);
-        textSize(13);
-        text("ESC para volver al menú", width / 2, height - 20);
+    }
 
-     if (clienteAnimando) {
+    if (clienteAnimando) {
         fill(100);
         textSize(20);
         text("👋 El cliente está llegando...", width / 2, height / 2 + 50);
     }
+}
 
 
 // ============================================
@@ -345,17 +371,6 @@ function mostrarInterfazEscena3() {
     textSize(28);
     text("🥖 ARMÁ EL PEDIDO", width / 2, 120);
 
-    // Pedido a armar
-    fill(0);
-    textSize(16);
-    let pedidoTexto = "Pedido: ";
-    for (let i = 0; i < pedidoActual.length; i++) {
-        let item = pedidoActual[i];
-        pedidoTexto += item.cantidad + " x " + item.producto;
-        if (i < pedidoActual.length - 1) pedidoTexto += ", ";
-    }
-    text(pedidoTexto, width / 2, 160);
-
     // Productos en una sola fila
     let productosMostrar = productos;
     let anchoProducto = 132;
@@ -405,67 +420,7 @@ function mostrarInterfazEscena3() {
         text("$" + productosMostrar[i].precio.toFixed(2), x + anchoProducto / 2, y + 135);
     }
 
-    // Bolsa (se resalta cuando se arrastra un producto encima)
-    if (arrastrando && arrastrando.movido && mouseSobreBolsa()) {
-        fill(230, 200, 130);
-        stroke(200, 150, 0);
-        strokeWeight(4);
-    } else {
-        fill(200, 180, 140);
-    }
-    rect(width / 2 - 200, 370, 400, 100, 10);
-    noStroke();
-
-    fill(0);
-    textSize(16);
-    text("🛍️ BOLSA:", width / 2, 390);
-
-          // Dibujar los productos dentro de la bolsa uno por uno
-    if (bolsa.length === 0) {
-        fill(80);
-        textSize(14);
-        text("(vacía) — hacé clic o arrastrá productos acá", width / 2, 430);
-    } else {
-        let inicioXBolsa = width / 2 - 170;
-        let inicioYBolsa = 415; // Posición Y de la primera fila
-        let anchoIcono = 40;
-        let espacioIcono = 10;
-        let maxColumnas = 8; // ✅ Cantidad máxima de productos por fila
-
-        for (let i = 0; i < bolsa.length; i++) {
-            let prod = bolsa[i];
-            
-            // ✅ Calculamos la columna y la fila
-            let col = i % maxColumnas;
-            let fila = Math.floor(i / maxColumnas);
-            
-            // Calculamos la posición X e Y
-            let x = inicioXBolsa + col * (anchoIcono + espacioIcono);
-            let y = inicioYBolsa + fila * 50; // 50 de separación entre filas
-
-            // Si el mouse está encima de este icono
-            let sobreIcono = mouseX > x && mouseX < x + anchoIcono && mouseY > y - 20 && mouseY < y + 20;
-
-            if (sobreIcono) {
-                // Si pasa el mouse, mostramos fondo rojo y la "X"
-                fill(255, 200, 200);
-                rect(x, y - 20, anchoIcono, 40, 5);
-                fill(200, 0, 0);
-                textSize(20);
-                text("X", x + anchoIcono/2, y);
-                cursor(HAND);
-            } else {
-                // Si no, mostramos la imagen del producto
-                let img = imagenesProductos[prod.nombre];
-                if (img) {
-                    image(img, x, y - 20, anchoIcono, 40);
-                } else {
-                    fill(200);
-                    rect(x, y - 20, anchoIcono, 40);
-                }
-            }
-        }
-    }
+    dibujarBolsa();
     // Cartel de aviso (dura 5 s y se difumina en 2 s) o, con el pedido armado
     // y sin cartel en pantalla, el botón "Ir a cobrar" en ese mismo lugar
     if (botonCobrarVisible()) {
@@ -571,14 +526,120 @@ function mostrarInterfazEscena2() {
     // Botón "Dar vuelto" (clic = tecla ENTER)
     dibujarCartelInteractivo();
 
-    // Instrucciones
-    fill(100);
-    textSize(13);
-    text("ESC para volver al menú", width / 2, height - 20);
 }
 
 // ============================================
 // AGREGAR PRODUCTO A LA BOLSA (escena 2)
+// ============================================
+// BOLSA (aspecto de bolsa + scroll vertical)
+// ============================================
+const BOLSA = { x: 250, y: 366, w: 400, h: 110,
+                vx: 262, vy: 392, vw: 366, vh: 80,      // zona visible de productos
+                cols: 7, ico: 36, px: 44, py: 40 };      // icono, separación horizontal y vertical
+let desplBolsa = 0;                                       // desplazamiento vertical en px
+
+function bolsaMaxScroll() {
+    let filas = Math.ceil(bolsa.length / BOLSA.cols);
+    return Math.max(0, filas * BOLSA.py - BOLSA.vh);
+}
+function bolsaGridX0() {
+    return BOLSA.vx + (BOLSA.vw - (BOLSA.cols * BOLSA.px - (BOLSA.px - BOLSA.ico))) / 2;
+}
+function bolsaThumb() {
+    let max = bolsaMaxScroll();
+    let filasPx = Math.ceil(bolsa.length / BOLSA.cols) * BOLSA.py;
+    let alto = Math.max(18, BOLSA.vh * BOLSA.vh / Math.max(filasPx, 1));
+    let y = BOLSA.vy + (max > 0 ? (BOLSA.vh - alto) * (desplBolsa / max) : 0);
+    return { x: 634, y: y, w: 8, h: alto };
+}
+// Índice del producto de la bolsa bajo el punto (px, py), o -1
+function iconoBolsaEn(px, py) {
+    if (px < BOLSA.vx || px > BOLSA.vx + BOLSA.vw || py < BOLSA.vy || py > BOLSA.vy + BOLSA.vh) return -1;
+    let rx = px - bolsaGridX0(), ry = py - BOLSA.vy + desplBolsa;
+    if (rx < 0 || ry < 0) return -1;
+    let c = Math.floor(rx / BOLSA.px), f = Math.floor(ry / BOLSA.py);
+    if (c >= BOLSA.cols || rx - c * BOLSA.px > BOLSA.ico || ry - f * BOLSA.py > BOLSA.ico) return -1;
+    let i = f * BOLSA.cols + c;
+    return i < bolsa.length ? i : -1;
+}
+function dibujarBolsa() {
+    desplBolsa = constrain(desplBolsa, 0, bolsaMaxScroll());
+    let sobre = arrastrando && arrastrando.movido && mouseSobreBolsa();
+
+    // Asas
+    noFill();
+    stroke(140, 95, 50);
+    strokeWeight(5);
+    bezier(375, BOLSA.y, 375, 334, 435, 334, 435, BOLSA.y);
+    bezier(465, BOLSA.y, 465, 334, 525, 334, 525, BOLSA.y);
+
+    // Cuerpo de papel
+    if (sobre) { fill(235, 195, 125); stroke(200, 150, 0); strokeWeight(4); }
+    else { fill(205, 160, 105); stroke(150, 105, 60); strokeWeight(3); }
+    rect(BOLSA.x, BOLSA.y, BOLSA.w, BOLSA.h, 3, 3, 14, 14);
+
+    // Doblez superior con etiqueta
+    noStroke();
+    fill(180, 135, 80);
+    rect(BOLSA.x + 1.5, BOLSA.y + 1.5, BOLSA.w - 3, 22, 3, 3, 0, 0);
+    stroke(140, 95, 50);
+    strokeWeight(1.5);
+    line(BOLSA.x + 2, BOLSA.y + 24, BOLSA.x + BOLSA.w - 2, BOLSA.y + 24);
+    noStroke();
+    fill(60, 30, 10);
+    textAlign(CENTER, CENTER);
+    textSize(14);
+    text("BOLSA", width / 2, BOLSA.y + 12);
+
+    // Interior
+    fill(225, 190, 135);
+    rect(BOLSA.vx - 4, BOLSA.vy - 2, BOLSA.vw + 20, BOLSA.vh + 2, 4);
+
+    if (bolsa.length === 0) {
+        fill(80);
+        textSize(14);
+        text("(vacía) — hacé clic o arrastrá productos acá", width / 2, BOLSA.vy + BOLSA.vh / 2);
+        return;
+    }
+
+    // Productos (recortados a la bolsa, con desplazamiento vertical)
+    push();
+    drawingContext.beginPath();
+    drawingContext.rect(BOLSA.vx, BOLSA.vy, BOLSA.vw, BOLSA.vh);
+    drawingContext.clip();
+    let x0 = bolsaGridX0();
+    let sobreIdx = iconoBolsaEn(mouseX, mouseY);
+    for (let i = 0; i < bolsa.length; i++) {
+        let x = x0 + (i % BOLSA.cols) * BOLSA.px;
+        let y = BOLSA.vy + Math.floor(i / BOLSA.cols) * BOLSA.py - desplBolsa;
+        if (y + BOLSA.ico < BOLSA.vy || y > BOLSA.vy + BOLSA.vh) continue;
+        if (i === sobreIdx) {
+            fill(255, 200, 200);
+            noStroke();
+            rect(x, y, BOLSA.ico, BOLSA.ico, 5);
+            fill(200, 0, 0);
+            textSize(20);
+            text("X", x + BOLSA.ico / 2, y + BOLSA.ico / 2);
+        } else {
+            let img = imagenesProductos[bolsa[i].nombre];
+            if (img) image(img, x, y, BOLSA.ico, BOLSA.ico);
+            else { fill(200); noStroke(); rect(x, y, BOLSA.ico, BOLSA.ico); }
+        }
+    }
+    pop();
+    if (sobreIdx >= 0) cursor(HAND);
+
+    // Barra deslizadora vertical
+    if (bolsaMaxScroll() > 0) {
+        noStroke();
+        fill(190, 150, 100);
+        rect(634, BOLSA.vy, 8, BOLSA.vh, 4);
+        let t = bolsaThumb();
+        fill(110, 60, 25);
+        rect(t.x, t.y, t.w, t.h, 4);
+    }
+}
+
 // ============================================
 function agregarProductoALaBolsa(indice, xOrigen, yOrigen) {
     if (indice < 0 || indice >= productos.length) return;
@@ -597,6 +658,7 @@ function agregarProductoALaBolsa(indice, xOrigen, yOrigen) {
 
    // ✅ Agregar a la bolsa
     bolsa.push(producto);
+    desplBolsa = bolsaMaxScroll();   // muestra el producto recién agregado
     mostrarMensajeTemporal("✅ " + producto.nombre + " agregado", color(0, 150, 0));
 
     // ✅ CREAR ANIMACIÓN
@@ -611,7 +673,7 @@ function agregarProductoALaBolsa(indice, xOrigen, yOrigen) {
 
     // Posición final (la bolsa)
     let xFinal = width / 2;
-    let yFinal = 420;
+    let yFinal = 430;
 
     // Crear la animación
     animaciones.push({
@@ -776,7 +838,7 @@ function productoBajoMouse() {
 }
 
 function mouseSobreBolsa() {
-    return mouseX >= width / 2 - 200 && mouseX <= width / 2 + 200 && mouseY >= 370 && mouseY <= 470;
+    return mouseX >= BOLSA.x && mouseX <= BOLSA.x + BOLSA.w && mouseY >= BOLSA.y && mouseY <= BOLSA.y + BOLSA.h;
 }
 
 // Botón "Ir a cobrar": aparece con el pedido armado, cuando ya no hay un
@@ -836,22 +898,22 @@ function cartelInteractivo() {
         return { lineas: [
                     "Presione las teclas '← →' para seleccionar un producto y 'ENTER' para agregarlo",
                     "Haz click aquí o presiona la tecla 'ESPACIO' para ir a cobrar"
-                 ], cx: width / 2, cy: 563, nivel: "suave", accion: irACobrar };
+                 ], cx: width / 2, cy: 555, nivel: "suave", accion: irACobrar };
     }
     if (estado === "cocinero_escena1") {
         if (pasoIngrediente >= recetaActual.ingredientes.length) {
             return { lineas: "¡Todo listo! Haz click aquí o presiona la tecla ESPACIO para ir al horno",
-                     cx: width / 2, cy: 565, nivel: "fuerte", accion: irAlHorno };
+                     cx: width / 2, cy: 557, nivel: "fuerte", accion: irAlHorno };
         }
         return { lineas: [
                     "Presione las teclas '← → ↑ ↓' y 'ENTER', o haga clic en un ingrediente, para agregarlo",
                     "Haz click aquí o presiona la tecla 'ESPACIO' para ir al horno"
-                 ], cx: width / 2, cy: 565, nivel: "suave", accion: irAlHorno };
+                 ], cx: width / 2, cy: 557, nivel: "suave", accion: irAlHorno };
     }
     if (estado === "cocinero_escena2") {
         if (coccionExitosa) {
             return { lineas: "Haz click aquí o presiona la tecla ESPACIO para " + siguienteEtapa("cocinero_escena2").texto,
-                     cx: width / 2, cy: 569, nivel: "fuerte", accion: avanzarDesdeHorno };
+                     cx: width / 2, cy: 561, nivel: "fuerte", accion: avanzarDesdeHorno };
         }
         if (coccionFallida) {
             let alfa = alfaMensaje();
@@ -864,22 +926,22 @@ function cartelInteractivo() {
     if (estado === "cocinero_escena3") {
         if (productosPintados.length === 6) {
             return { lineas: "¡Todo pintado! Haz click aquí o presiona la tecla ESPACIO para " + siguienteEtapa("cocinero_escena3").texto,
-                     cx: width / 2, cy: 569, nivel: "fuerte", accion: terminarPintado };
+                     cx: width / 2, cy: 561, nivel: "fuerte", accion: terminarPintado };
         }
         return { lineas: [
                     "Presione las teclas '← → ↑ ↓' y 'ENTER', o haga clic en una pieza, para pintarla",
                     "Haz click aquí o presiona la tecla 'ESPACIO' para terminar"
-                 ], cx: width / 2, cy: 569, nivel: "suave", accion: terminarPintado };
+                 ], cx: width / 2, cy: 561, nivel: "suave", accion: terminarPintado };
     }
     if (estado === "cocinero_escena4") {
         if (decoracionesElegidas.length >= decoracionesRequeridas.length) {
             return { lineas: "¡Decoración lista! Haz click aquí o presiona la tecla ESPACIO para entregar",
-                     cx: width / 2, cy: 569, nivel: "fuerte", accion: entregarProducto };
+                     cx: width / 2, cy: 561, nivel: "fuerte", accion: entregarProducto };
         }
         return { lineas: [
                     "Presione las teclas '← → ↑ ↓' y 'ENTER', o haga clic en una decoración, para agregarla",
                     "Haz click aquí o presiona la tecla 'ESPACIO' para entregar"
-                 ], cx: width / 2, cy: 569, nivel: "suave", accion: entregarProducto };
+                 ], cx: width / 2, cy: 561, nivel: "suave", accion: entregarProducto };
     }
     return null;
 }
@@ -1011,30 +1073,108 @@ function dibujarTablaRanking(x, y, ancho, titulo, datos) {
     }
 }
 
+// Posición del botón (alineado a la derecha, con el mismo margen que la caja de dinero)
+function geomBotonInicio() {
+    push();
+    textStyle(BOLD);
+    textSize(13);
+    let ancho = textWidth("Regresar al menú") + 28;
+    pop();
+    return { x: width - 20 - ancho, y: 60, w: ancho, h: 30 };
+}
+function mouseSobreBotonInicio() {
+    let g = geomBotonInicio();
+    return mouseX > g.x && mouseX < g.x + g.w && mouseY > g.y && mouseY < g.y + g.h;
+}
+
 function dibujarBotonInicio() {
-    // Coordenadas del botón (arriba a la izquierda)
-    let x = width - 120; 
-     let y = 60;
-    let ancho = 100;
-    let alto = 35;
+    let g = geomBotonInicio();
+    let encima = mouseSobreBotonInicio();
 
-    // Detectar si el mouse está encima para darle un efecto
-    let encima = (mouseX > x && mouseX < x + ancho && mouseY > y && mouseY < y + alto);
-
-    if (encima) {
-        fill(160, 82, 30); // Marrón más clarito
-        cursor(HAND);      // Manito del mouse
-    } else {
-        fill(139, 69, 19); // Marrón oscuro
-    }
-    
-    stroke(217, 164, 65); // Borde dorado
+    push();
+    // Mismos colores que los carteles y botones del juego (crema, borde dorado, texto marrón)
+    fill(encima ? color(255, 238, 195) : color(255, 248, 232));
+    stroke(217, 164, 65);
     strokeWeight(2);
-    rect(x, y, ancho, alto, 8); // Caja
-    
-    fill(255); // Texto blanco
-    textSize(14);
-    textAlign(CENTER, CENTER);
-    text("regresar al menu", x + ancho / 2, y + alto / 2);
+    rect(g.x, g.y, g.w, g.h, 8);
+
     noStroke();
+    fill(100, 50, 20);
+    textStyle(BOLD);
+    textSize(13);
+    textAlign(CENTER, CENTER);
+    text("Regresar al menú", g.x + g.w / 2, g.y + g.h / 2);
+    pop();
+    if (encima) cursor(HAND);
+}
+
+
+
+// ============================================
+// CARTEL "ESC" ABAJO, CERRAR SESIÓN Y BARRA DE LA BOLSA
+// ============================================
+const TEXTO_ESC = "Presione la tecla ESC para volver a los modos de juego y guardar su progreso.";
+
+function geomCartelEsc() {
+    push();
+    textStyle(BOLD);
+    textSize(11);
+    let w = textWidth(TEXTO_ESC) + 24;
+    pop();
+    return { x: width / 2 - w / 2, y: height - 17, w: w, h: 16 };
+}
+function mouseSobreCartelEsc() {
+    let g = geomCartelEsc();
+    return mouseX >= g.x && mouseX <= g.x + g.w && mouseY >= g.y && mouseY <= g.y + g.h;
+}
+function dibujarCartelEsc() {
+    let g = geomCartelEsc();
+    let encima = mouseSobreCartelEsc();
+    push();
+    stroke(217, 164, 65);
+    strokeWeight(1.5);
+    fill(encima ? color(255, 238, 195) : color(255, 248, 232));
+    rect(g.x, g.y, g.w, g.h, 8);
+    noStroke();
+    fill(100, 50, 20);
+    textStyle(BOLD);
+    textSize(11);
+    textAlign(CENTER, CENTER);
+    text(TEXTO_ESC, width / 2, g.y + g.h / 2);
+    pop();
+    if (encima) cursor(HAND);
+}
+
+// Misma salida que la tecla ESC (guardando antes el progreso)
+function volverAlMenuGuardando() {
+    enviarProgreso('cajero');
+    enviarProgreso('cocinero');
+    if (estado.startsWith("cajero_escena")) ocultarCliente();
+    estado = "menu";
+}
+
+function cerrarSesion() {
+    try {
+        localStorage.removeItem('panaderiaJugador');
+        localStorage.removeItem('jugador_id');
+    } catch (e) {}
+    window.location.href = 'index.html';
+}
+function mouseSobreCerrarSesion() { return mouseSobreAviso("Cerrar sesión", width / 2, 510, "suave"); }
+
+// Barra deslizadora de la bolsa
+let arrastrandoScrollBolsa = false;
+function scrollBolsaDesdeY(py) {
+    let t = bolsaThumb();
+    let rango = BOLSA.vh - t.h;
+    if (rango <= 0) return;
+    desplBolsa = constrain((py - BOLSA.vy - t.h / 2) / rango * bolsaMaxScroll(), 0, bolsaMaxScroll());
+}
+function iniciarArrastreScrollBolsa() {
+    if (bolsaMaxScroll() > 0 && mouseX >= 628 && mouseX <= 648 && mouseY >= BOLSA.vy && mouseY <= BOLSA.vy + BOLSA.vh) {
+        arrastrandoScrollBolsa = true;
+        scrollBolsaDesdeY(mouseY);
+        return true;
+    }
+    return false;
 }

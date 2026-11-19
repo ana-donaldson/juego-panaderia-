@@ -29,11 +29,18 @@ const tieneMalaPalabra = t => { const n = normalizar(t); return MALAS_N.some(m =
 const RE_USER = /^[A-Za-zÁÉÍÓÚÜáéíóúüÑñ0-9]+$/;
 const RE_MAIL = /^[A-Za-z0-9._%+-]+@[A-Za-z0-9-]+(\.[A-Za-z0-9-]+)*\.[A-Za-z]{2,}$/;
 
+// Lista cerrada de proveedores de correo permitidos (misma lista que conexion.php)
+const DOMINIOS_OK = ['gmail.com','googlemail.com','outlook.com','outlook.es','outlook.com.ar',
+  'hotmail.com','hotmail.es','hotmail.com.ar','live.com','msn.com','yahoo.com','yahoo.es','yahoo.com.ar',
+  'icloud.com','me.com','aol.com','proton.me','protonmail.com'];
+const MSG_DOMINIO = 'Solo se aceptan correos de Gmail, Outlook, Hotmail, Yahoo, iCloud, Live, MSN, AOL o Proton.';
+const dominioOk = m => DOMINIOS_OK.includes(m.slice(m.lastIndexOf('@') + 1).toLowerCase());
+
 const V = {
   usuario(v){
     v = v.trim();
     if (!v) return 'Ingresá tu usuario' + (modo==='login' ? ' o correo.' : '.');
-    if (modo==='login') return v.includes('@') ? (RE_MAIL.test(v) ? '' : 'El correo no es válido.') : (RE_USER.test(v) ? '' : 'Solo letras y números, sin símbolos ni espacios.');
+    if (modo==='login') return v.includes('@') ? (RE_MAIL.test(v) ? (dominioOk(v) ? '' : MSG_DOMINIO) : 'El correo no es válido.') : (RE_USER.test(v) ? '' : 'Solo letras y números, sin símbolos ni espacios.');
     if (v.length < 3 || v.length > 16) return 'Debe tener entre 3 y 16 caracteres.';
     if (!RE_USER.test(v)) return 'Solo letras y números: sin espacios ni caracteres especiales.';
     if (tieneMalaPalabra(v)) return 'Ese nombre no está permitido. Elegí otro.';
@@ -43,6 +50,7 @@ const V = {
     v = v.trim();
     if (!v) return 'Ingresá tu correo.';
     if (!RE_MAIL.test(v)) return 'El correo no es válido (ej: nombre@dominio.com).';
+    if (!dominioOk(v)) return MSG_DOMINIO;
     if (modo==='reg' && tieneMalaPalabra(v.split('@')[0])) return 'Ese correo contiene palabras no permitidas.';
     return '';
   },
@@ -155,6 +163,7 @@ function irAlJuego(nombre, id){
   try {
     localStorage.setItem('panaderiaJugador', nombre);
     if (id) localStorage.setItem('jugador_id', id);  // ✅ GUARDA EL ID
+    else localStorage.removeItem('jugador_id');      // invitado: no hereda la cuenta anterior
   } catch(e){}
   setTimeout(() => location.href = JUEGO, 900);
 }
@@ -204,3 +213,4 @@ form.addEventListener('submit', async e => {
 $('#invitado').onclick = () => { aviso('Entrando como invitado…', 'exito'); irAlJuego('Invitado'); };
 
 setModo('login');
+

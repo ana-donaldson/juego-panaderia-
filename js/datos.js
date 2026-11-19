@@ -162,4 +162,6 @@ function generarPagoAleatorio(total) {
 // ============================================
 const PUNTOS_POR_VUELTO = 200;           // Cajero: puntos por cada vuelto correcto
 const PUNTOS_COCINERO_MAX = 1000;        // Cocinero: puntaje con tiempo 0
+const PUNTOS_ETAPA_COCINERO = 100;        // Cocinero: puntos por cada etapa completada (se guardan al salir con ESC)
 const TIEMPO_REFERENCIA_COCINERO = 60;   // Cocinero: con este tiempo (en segundos) el puntaje es la mitad
+

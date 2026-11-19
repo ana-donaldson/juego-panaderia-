@@ -262,6 +262,11 @@ function draw() {
     // Ranking: se pide una sola vez cada vez que se entra al menú
     if (estado !== estadoPrevio) {
         if (estado === "menu") iniciarRanking();
+        // En el menú el video de fondo se ve completo, sin el marco del lienzo
+        document.body.classList.toggle('en-menu', estado === "menu");
+        // El video de fondo solo está presente en la selección de modos de juego
+        const videoFondo = document.getElementById('video-fondo');
+        if (videoFondo) videoFondo.style.display = (estado === "menu") ? "block" : "none";
         estadoPrevio = estado;
     }
 
@@ -313,6 +318,10 @@ function draw() {
 
      if (estado !== "menu" && estado !== "instrucciones") {
         dibujarBotonInicio();
+    }
+
+    if (estado !== "menu") {
+        dibujarCartelEsc();   // "Presione la tecla ESC..." (clic = ESC)
     }
 }
 
@@ -418,6 +427,8 @@ function comenzarPartida() {
 // ============================================
 function keyPressed() {
     iniciarMusica();
+    // ESC guarda el progreso acumulado (puntos y clientes/recetas) antes de salir
+    if (key === 'Escape') { enviarProgreso('cajero'); enviarProgreso('cocinero'); }
     // ==========================================
     // MENÚ
     // ==========================================
@@ -478,36 +489,9 @@ function keyPressed() {
         if (keyCode === DOWN_ARROW) indiceIngredienteSeleccionado = (indiceIngredienteSeleccionado + 2) % ingredientesDisponibles.length;
         
        
-                         if (keyCode === ENTER || key === 'Enter') {
-            let ingSeleccionado = ingredientesDisponibles[indiceIngredienteSeleccionado];
-            let estaEnReceta = recetaActual.ingredientes.includes(ingSeleccionado);
-
-            if (!estaEnReceta) {
-                if (vidasCocinero === undefined) vidasCocinero = 3;
-                vidasCocinero--; 
-                
-                mostrarAvisoError("❌ ¡Ese ingrediente no va! Vidas: " + vidasCocinero);
-                
-                if (vidasCocinero <= 0) {
-                    estado = "fin"; 
-                    mensaje = "";
-                    return; 
-                }
-            } else {
-                if (ingredientesEnBowl.includes(ingSeleccionado)) {
-                    mostrarAvisoError("❌ Ya agregaste " + ingSeleccionado);
-                } else {
-                    ingredientesEnBowl.push(ingSeleccionado); 
-                    mensaje = "✅ ¡Bien! Agregaste " + ingSeleccionado;
-                    mensajeColor = color(0, 150, 0);
-                    if (ingredientesEnBowl.length === recetaActual.ingredientes.length) {
-                        mensaje = "✅ ¡Todo listo! Presiona ESPACIO para ir al horno.";
-                    }
-                }
-            }
-            
-            // ✅ ESTE RETURN ES LA CLAVE: evita que el ENTER se ejecute dos veces
-            return; 
+        if (keyCode === ENTER || key === 'Enter') {
+            agregarIngrediente(indiceIngredienteSeleccionado);   // misma lógica que el clic y el arrastre
+            return;
         }
         
         if (key === ' ') { 
@@ -554,6 +538,7 @@ function keyPressed() {
         }
     }
 function avanzarDesdeHorno() {
+    sumarPuntosEtapaCocinero();   // etapa del horno completada
     // Si no necesita brillo, ni decoración (como el Pan), va directo al final
     if (recetaActual.necesitaBrillo === false && recetaActual.necesitaDecoracion === false) {
         estado = "fin";
@@ -640,6 +625,7 @@ function avanzarDesdeHorno() {
     if (estado === "fin") {
         if (key === 'r' || key === 'R') { reiniciarJuego(); estado = "menu"; }
         if (key === 'm' || key === 'M') estado = "menu";
+        if (key === 'Escape') estado = "menu";
     }
 }
 // ============================================
@@ -649,53 +635,51 @@ function avanzarDesdeHorno() {
     iniciarMusica();
     // ✅ DETECTAR CLIC EN EL BOTÓN DE INICIO
     if (estado !== "menu" && estado !== "instrucciones") {
-        let x = width - 120; 
-        let y = 60;
-        let ancho = 100;
-        let alto = 35;
-
-        if (mouseX > x && mouseX < x + ancho && mouseY > y && mouseY < y + alto) {
+        if (mouseSobreBotonInicio()) {
             if (sonidoBoton) sonidoBoton.play(); // ✅ SUENA EL BOTÓN
+            enviarProgreso('cajero'); enviarProgreso('cocinero');
             reiniciarJuego();
             estado = "menu";
             return; 
         }
     }
 
+    // ✅ CARTEL INFERIOR = TECLA ESC
+    if (estado !== "menu" && mouseSobreCartelEsc()) {
+        if (sonidoBoton) sonidoBoton.play();
+        volverAlMenuGuardando();
+        return;
+    }
+
        // ✅ QUITAR PRODUCTO DE LA BOLSA
     if (estado === "cajero_escena3" && bolsa.length > 0) {
-        let inicioXBolsa = width / 2 - 170;
-        let inicioYBolsa = 415;
-        let anchoIcono = 40;
-        let espacioIcono = 10;
-        let maxColumnas = 8;
-
-        for (let i = 0; i < bolsa.length; i++) {
-            let col = i % maxColumnas;
-            let fila = Math.floor(i / maxColumnas);
-            
-            let x = inicioXBolsa + col * (anchoIcono + espacioIcono);
-            let y = inicioYBolsa + fila * 50;
-
-            // Verificamos si el clic fue en este producto específico
-            if (mouseX > x && mouseX < x + anchoIcono && mouseY > y - 20 && mouseY < y + 20) {
-                if (sonidoBoton) sonidoBoton.play();
-                bolsa.splice(i, 1); // Lo borramos
-                mostrarAvisoError("Producto quitado de la bolsa", color(200, 100, 0));
-                return; 
-            }
+        if (iniciarArrastreScrollBolsa()) return;   // barra deslizadora de la bolsa
+        let i = iconoBolsaEn(mouseX, mouseY);
+        if (i >= 0) {
+            if (sonidoBoton) sonidoBoton.play();
+            bolsa.splice(i, 1); // Lo borramos
+            desplBolsa = constrain(desplBolsa, 0, bolsaMaxScroll());
+            mostrarAvisoError("Producto quitado de la bolsa", color(200, 100, 0));
+            return;
         }
     }
     
     // ✅ Si estamos en el menú, el clic también sirve para elegir
     if (estado === "menu") {
-        if (mouseY > 250 && mouseY < 310) { 
+        if (mouseSobreCerrarSesion()) {
             if (sonidoBoton) sonidoBoton.play();
-            modoSeleccionado = "cajero"; estado = "instrucciones"; return; 
+            cerrarSesion();
+            return;
         }
-        if (mouseY > 330 && mouseY < 390) { 
-            if (sonidoBoton) sonidoBoton.play();
-            modoSeleccionado = "cocinero"; estado = "instrucciones"; return; 
+        if (mouseX > width / 2 - 200 && mouseX < width / 2 + 200) {
+            if (mouseY > 260 && mouseY < 320) { 
+                if (sonidoBoton) sonidoBoton.play();
+                modoSeleccionado = "cajero"; estado = "instrucciones"; return; 
+            }
+            if (mouseY > 340 && mouseY < 400) { 
+                if (sonidoBoton) sonidoBoton.play();
+                modoSeleccionado = "cocinero"; estado = "instrucciones"; return; 
+            }
         }
     }
 
@@ -723,7 +707,7 @@ function avanzarDesdeHorno() {
         if (i >= 0) { 
             if (sonidoBoton) sonidoBoton.play();
             indiceIngredienteSeleccionado = i; 
-            agregarIngrediente(i); 
+            ingArrastrando = { indice: i, movido: false, xIni: mouseX, yIni: mouseY };   // clic o arrastre al bowl
         } 
         return;
     }
@@ -788,12 +772,21 @@ function productoBajoMouse() {
 }
 function mouseDragged() {
     if (arrastrandoDeslizador) desplazarDesdeMouse();
+    if (arrastrandoScrollBolsa) scrollBolsaDesdeY(mouseY);
+    if (ingArrastrando && dist(mouseX, mouseY, ingArrastrando.xIni, ingArrastrando.yIni) > 6) {
+        ingArrastrando.movido = true;
+    }
     if (arrastrando && dist(mouseX, mouseY, arrastrando.xIni, arrastrando.yIni) > 6) {
         arrastrando.movido = true;
     }
 }
 
 function mouseWheel(event) {
+    if (estado === "cajero_escena3" && bolsaMaxScroll() > 0 &&
+        mouseX >= BOLSA.x && mouseX <= BOLSA.x + BOLSA.w && mouseY >= BOLSA.y && mouseY <= BOLSA.y + BOLSA.h) {
+        desplBolsa = constrain(desplBolsa + event.delta * 0.5, 0, bolsaMaxScroll());
+        return false;
+    }
     if (estado === "cocinero_escena4" && hayDeslizador()) {
         desplazamientoDecoraciones = Math.max(0, Math.min(maxDesplazamiento(), desplazamientoDecoraciones + (event.delta > 0 ? 1 : -1)));
         return false;   
@@ -802,6 +795,19 @@ function mouseWheel(event) {
 
 function mouseReleased() {
     arrastrandoDeslizador = false;
+    arrastrandoScrollBolsa = false;
+    if (ingArrastrando) {
+        let ing = ingArrastrando;
+        ingArrastrando = null;
+        if (estado === "cocinero_escena1") {
+            if (!ing.movido) {
+                if (ingredienteBajoMouse() === ing.indice) agregarIngrediente(ing.indice);   // clic
+            } else if (mouseSobreBowl()) {
+                agregarIngrediente(ing.indice);                                              // soltado en el bowl
+            }
+        }
+        return;
+    }
     if (!arrastrando) return;
     let a = arrastrando;
     arrastrando = null;
@@ -833,3 +839,4 @@ function reiniciarJuego() {
     bolsa = [];
     productoSeleccionado = 0;
 }
+

@@ -27,7 +27,15 @@ function mostrarInstruccionesCocinero() {
 
     textAlign(CENTER, CENTER);
     dibujarCartelInteractivo();
-}function mostrarInterfazCocinero1() {
+}
+// Ingrediente que se está arrastrando con el mouse (null si ninguno)
+let ingArrastrando = null;
+// Zona del bowl donde se puede soltar un ingrediente arrastrado
+function mouseSobreBowl() {
+    return mouseX >= 340 && mouseX <= 560 && mouseY >= 150 && mouseY <= 300;
+}
+
+function mostrarInterfazCocinero1() {
     // --- PANEL IZQUIERDO: Lista de Ingredientes ---
     fill(255, 255, 255, 220);
     rect(20, 20, 250, 250, 10);
@@ -54,6 +62,7 @@ function mostrarInstruccionesCocinero() {
         }
         yIng += 30;
     }
+    textAlign(CENTER, CENTER);   // de acá en adelante todo va centrado
 
     // --- ARRIBA CENTRO: Foto de la receta ---
     if (imagenesRecetas[recetaActual.nombre]) {
@@ -77,15 +86,19 @@ function mostrarInstruccionesCocinero() {
         }
     } else {
         // Si todavía NO terminó, dibujamos el bol gris y los ingredientes
+        if (ingArrastrando && ingArrastrando.movido && mouseSobreBowl()) {
+            stroke(255, 220, 100); strokeWeight(5);   // resalta el bowl al arrastrar encima
+        } else {
+            noStroke();
+        }
         fill(150, 150, 150);
         ellipse(width / 2, 220, 160, 120);
+        noStroke();
         fill(120, 120, 120);
         ellipse(width / 2, 225, 160, 110); // El 3D
 
         if (ingredientesEnBowl.length === 0) {
-            fill(80);
-            textSize(14);
-            text("Tirá los ingredientes acá", width / 2, 220);
+            dibujarAviso("Tirá los ingredientes acá", width / 2, 220, "suave");
         } else {
             for (let i = 0; i < ingredientesEnBowl.length; i++) {
                 let ing = ingredientesEnBowl[i];
@@ -106,49 +119,56 @@ function mostrarInstruccionesCocinero() {
     }
 
     // --- ABAJO: Mesa de trabajo ---
+    noStroke();
     fill(180, 140, 100);
     rect(0, 350, width, 250);
     fill(0);
     textSize(16);
-    text("Mesa de trabajo", width / 2, 380);
+    text("Mesa de trabajo", width / 2, 375);
 
-    let inicioX = 100;
-    let anchoCaja = 100;
-    let altoCaja = 80;
-    let espacio = 20;
-
+    // Ingredientes centrados en la pantalla, con su nombre debajo de la imagen
     for (let i = 0; i < ingredientesDisponibles.length; i++) {
-        let x = inicioX + i * (anchoCaja + espacio);
-        let y = 450;
+        let r = rectIngrediente(i);
 
         if (i === indiceIngredienteSeleccionado) {
             fill(255, 220, 100); stroke(200, 150, 0); strokeWeight(4);
         } else {
             fill(255, 255, 255); noStroke();
         }
-        rect(x, y, anchoCaja, altoCaja, 10);
+        rect(r.x, r.y, r.w, r.h, 10);
         noStroke();
 
         let img = imagenesIngredientes[ingredientesDisponibles[i]];
         if (img) {
-            image(img, x + 20, y + 10, 60, 60);
+            image(img, r.x + 22, r.y + 8, 56, 56);
         } else {
-            fill(0); textSize(14);
-            text(ingredientesDisponibles[i], x + anchoCaja / 2, y + altoCaja / 2);
+            fill(235, 215, 180);
+            rect(r.x + 22, r.y + 8, 56, 56, 8);
         }
+        fill(0);
+        textSize(12);
+        text(ingredientesDisponibles[i], r.x + r.w / 2, r.y + 80);
     }
 
-    // Instrucciones y mensajes
+    // Mensajes (con cartel)
     if (mensaje !== "") {
-        fill(mensajeColor);
-        textSize(18);
-        text(mensaje, width / 2, height - 30);
+        dibujarAviso(mensaje, width / 2, 126, "suave", mensajeColor, alfaMensaje());
     }
 
-    fill(0);
-    textSize(14);
-    text("← → Seleccionar  |  ENTER Agregar al Bowl  |  ESPACIO Ir al Horno", width / 2, height - 10);
+    // Instrucciones (cartel interactivo)
+    dibujarCartelInteractivo();
+
+    // Ingrediente arrastrado siguiendo al mouse
+    if (ingArrastrando && ingArrastrando.movido) {
+        let img = imagenesIngredientes[ingredientesDisponibles[ingArrastrando.indice]];
+        if (img) image(img, mouseX - 30, mouseY - 30, 60, 60);
+        else { fill(235, 215, 180); rect(mouseX - 30, mouseY - 30, 60, 60, 8); }
+        cursor('grabbing');
+    } else if (ingredienteBajoMouse() >= 0) {
+        cursor(HAND);
+    }
 }
+
 function mostrarInterfazCocinero2() {
     // Título
     fill(139, 69, 19);
@@ -171,20 +191,20 @@ function mostrarInterfazCocinero2() {
     }
     rect(350, 220, 200, 100, 10);
 
-    // Panel de control del horno
+    // Panel de control del horno (más alto: temperatura arriba, barra de tiempo abajo)
     fill(255, 255, 255, 220);
-    rect(250, 420, 400, 120, 10);
+    rect(250, 408, 400, 124, 10);
 
     // ==========================================
     // TEMPERATURA
     // ==========================================
     fill(0);
     textSize(18);
-    text("Temperatura:", 300, 450);
+    text("Temperatura:", 335, 430);
     
     // Si está encendido, mostrar la que eligió, si no, la de la receta como guía
     textSize(24);
-    text(temperaturaHorno + "°C", 300, 480);
+    text(temperaturaHorno + "°C", 460, 430);
 
     // Indicador de si está bien o mal (solo cuando está encendido)
     if (hornoEncendido) {
@@ -194,33 +214,35 @@ function mostrarInterfazCocinero2() {
             fill(200, 0, 0); // Rojo
         }
         textSize(14);
-        text("(Receta: " + recetaActual.temperatura + "°C)", 300, 510);
+        text("(Receta: " + recetaActual.temperatura + "°C)", 580, 430);
     }
     // Temperatura pedida por la receta (cartel resaltado)
     dibujarAviso("🌡️ Temperatura pedida: " + recetaActual.temperatura + "°C", width / 2, 176, "suave");
 
     // ==========================================
-    // BARRA DE TIEMPO
+    // BARRA DE TIEMPO (debajo de la temperatura)
     // ==========================================
     fill(0);
     textSize(18);
-    text("Tiempo:", 650, 450);
+    text("Tiempo:", width / 2, 465);
 
-    // Fondo de la barra (Ahora mide 300 de ancho)
+    // Fondo de la barra (300 de ancho, centrada en el panel)
     fill(200);
-    rect(450, 470, 300, 20, 5);
+    rect(300, 490, 300, 20, 5);
 
     // Relleno de la barra
     if (hornoEncendido || progresoHorno > 0) {
         fill(255, 100, 0);
-        rect(450, 470, progresoHorno, 20, 5);
+        rect(300, 490, progresoHorno, 20, 5);
     }
 
     // Meta ideal (Calculada para que la línea verde esté en el lugar correcto)
-    let metaX = 450 + (recetaActual.tiempoIdeal * 15); // 👈 Multiplicamos por 15
-    stroke(0, 255, 0);
-    strokeWeight(3);
-    line(metaX, 465, metaX, 495);
+    let metaX = 300 + (recetaActual.tiempoIdeal * 15); // 👈 Multiplicamos por 15
+    // La línea verde titila (parpadeo de color)
+    let parpadeo = (Math.sin(millis() * 0.012) + 1) / 2;
+    stroke(lerpColor(color(0, 110, 0), color(150, 255, 120), parpadeo));
+    strokeWeight(3 + parpadeo * 2);
+    line(metaX, 485, metaX, 515);
     noStroke();
     // ==========================================
     // INSTRUCCIONES
@@ -231,12 +253,12 @@ function mostrarInterfazCocinero2() {
         dibujarAviso([
             "Presione las teclas '← →' (o manténgalas) para ajustar la temperatura",
             "Presione la tecla 'ENTER' para encender el horno"
-        ], width / 2, 569, "suave");
+        ], width / 2, 561, "suave");
     } else {
         dibujarAviso([
             "¡Cuidado!",
             "Presione la tecla 'ESPACIO' justo en la línea verde"
-        ], width / 2, 569, "suave");
+        ], width / 2, 561, "suave");
     }
 
     // Mensaje (error o acierto). Si la cocción falló, el cartel de reintento lo dibuja dibujarCartelInteractivo()
@@ -298,15 +320,15 @@ function mostrarInterfazCocinero3() {
     // Barra de progreso del brillo
     let progreso = (productosPintados.length / totalProductos) * 100;
     fill(200);
-    rect(250, 520, 400, 20, 10);
+    rect(250, 514, 400, 20, 10);
     fill(255, 200, 0);
-    rect(250, 520, map(progreso, 0, 100, 0, 400), 20, 10);
+    rect(250, 514, map(progreso, 0, 100, 0, 400), 20, 10);
     
     push();
     textAlign(LEFT, CENTER);
     fill(0);
     textSize(14);
-    text("Progreso: " + Math.floor(progreso) + "%", 660, 530);
+    text("Progreso: " + Math.floor(progreso) + "%", 660, 524);
     pop();
 
     // Manito al pasar el mouse sobre una pieza
@@ -412,7 +434,7 @@ if (decoracionTerminada) {
 
     // 3. PANEL DE OPCIONES
     fill(255, 255, 255, 230);
-    rect(150, 280, 600, 220, 10);
+    rect(150, 280, 600, 248, 10);   // más alto para que entren las 5 filas de decoraciones
 
     fill(0);
     textSize(18);
@@ -579,11 +601,19 @@ function mostrarSeleccionReceta() {
     dibujarAviso([
         "Presione las teclas '← → ↑ ↓' y 'ENTER', o haga clic en un producto, para elegirlo",
         "Presione la tecla 'ESC' para volver al menú"
-    ], width / 2, 565, "suave");
+    ], width / 2, 557, "suave");
 }
 
 // Arranca la preparación de la receta elegida
+// Puntos de etapas ya sumados para la receta en curso (se descuentan del puntaje final)
+let etapasRecetaPuntos = 0;
+function sumarPuntosEtapaCocinero() {
+    pendCocinero.puntos += PUNTOS_ETAPA_COCINERO;
+    etapasRecetaPuntos += PUNTOS_ETAPA_COCINERO;
+}
+
 function iniciarReceta(i) {
+    etapasRecetaPuntos = 0;
     mensaje = "";
     mensajeTemp = null;
     vidasCocinero = 3; 
@@ -614,10 +644,12 @@ function iniciarReceta(i) {
 // ============================================
 // ESCENA 1: INGREDIENTES (teclado y mouse)
 // ============================================
-// Rectángulo de cada ingrediente (mismas medidas que en mostrarInterfazCocinero1)
+// Rectángulo de cada ingrediente (mismas medidas que en mostrarInterfazCocinero1):
+// una sola fila centrada en la pantalla
 function rectIngrediente(i) {
-    let ancho = 160, alto = 80, espacioX = 20, espacioY = 20;
-    return { x: 480 + (i % 2) * (ancho + espacioX), y: 150 + Math.floor(i / 2) * (alto + espacioY), w: ancho, h: alto };
+    let ancho = 100, alto = 100, espacio = 20;
+    let total = ingredientesDisponibles.length * ancho + (ingredientesDisponibles.length - 1) * espacio;
+    return { x: width / 2 - total / 2 + i * (ancho + espacio), y: 400, w: ancho, h: alto };
 }
 
 // Índice del ingrediente bajo el mouse (-1 si no hay ninguno)
@@ -629,16 +661,30 @@ function ingredienteBajoMouse() {
     return -1;
 }
 
-// Agrega el ingrediente (lo usan ENTER y el clic del mouse)
+// Agrega el ingrediente (lo usan ENTER, el clic y el arrastre al bowl): misma regla para todos
 function agregarIngrediente(indice) {
     let ingSeleccionado = ingredientesDisponibles[indice];
-    let ingNecesario = recetaActual.ingredientes[pasoIngrediente];
+    let estaEnReceta = recetaActual.ingredientes.includes(ingSeleccionado);
 
-    if (ingSeleccionado === ingNecesario) {
-        mostrarMensajeTemporal("✅ ¡Bien! Agregaste " + ingSeleccionado, color(0, 150, 0));
-        pasoIngrediente++;
-    } else {
-        mostrarAvisoError("❌ Ese no es el siguiente ingrediente.");
+    if (!estaEnReceta) {
+        if (vidasCocinero === undefined) vidasCocinero = 3;
+        vidasCocinero--;
+        mostrarAvisoError("❌ ¡Ese ingrediente no va! Vidas: " + vidasCocinero);
+        if (vidasCocinero <= 0) {
+            estado = "fin";
+            mensaje = "";
+        }
+        return;
+    }
+    if (ingredientesEnBowl.includes(ingSeleccionado)) {
+        mostrarAvisoError("❌ Ya agregaste " + ingSeleccionado);
+        return;
+    }
+    ingredientesEnBowl.push(ingSeleccionado);
+    mensaje = "✅ ¡Bien! Agregaste " + ingSeleccionado;
+    mensajeColor = color(0, 150, 0);
+    if (ingredientesEnBowl.length === recetaActual.ingredientes.length) {
+        mensaje = "✅ ¡Todo listo! Presiona ESPACIO para ir al horno.";
     }
 }
 
@@ -658,6 +704,7 @@ function irAlHorno() {
         mostrarAvisoError("❌ Faltan ingredientes en la mesa.");
         return;
     }
+    sumarPuntosEtapaCocinero();   // etapa de ingredientes completada
     estado = "cocinero_escena2";
     mensaje = "";
     temperaturaHorno = 0;
@@ -670,6 +717,7 @@ function irAlHorno() {
 // Horno -> siguiente etapa (solo si la cocción salió bien)
 function avanzarDesdeHorno() {
     if (!coccionExitosa) return;
+    sumarPuntosEtapaCocinero();   // etapa del horno completada
     estado = siguienteEtapa("cocinero_escena2").estado;
     coccionExitosa = false;
     mensaje = "";
@@ -681,6 +729,7 @@ function terminarPintado() {
         mostrarAvisoError("❌ Faltan pintar algunas");
         return;
     }
+    sumarPuntosEtapaCocinero();   // etapa de brillo completada
     estado = siguienteEtapa("cocinero_escena3").estado;
     mensaje = "";
 }
@@ -692,6 +741,7 @@ function entregarProducto() {
         return;
     }
     decoracionElegida = decoracionesElegidas.join(", ");
+    sumarPuntosEtapaCocinero();   // etapa de decoración completada
     estado = "fin";
     mensaje = "";
 }
@@ -760,13 +810,14 @@ function pintarProducto(indice) {
 // ============================================
 // DECORACIONES (teclado, mouse y deslizador)
 // ============================================
-const DECORACIONES_FILAS_VISIBLES = 2;
+const DECORACIONES_FILAS_VISIBLES = 5;   // entran todas las filas: no hace falta deslizador
 
 // Rectángulo de cada decoración (null si está fuera de la zona visible)
 function rectDecoracion(i) {
     let fil = Math.floor(i / 2) - desplazamientoDecoraciones;
     if (fil < 0 || fil >= DECORACIONES_FILAS_VISIBLES) return null;
-    return { x: 250 + (i % 2) * 220, y: 390 + fil * 50, w: 200, h: 40 };
+    // misma geometría que la grilla de mostrarInterfazCocinero4
+    return { x: width / 2 - 220 + (i % 2) * 225, y: 330 + fil * 40, w: 210, h: 30 };
 }
 
 function decoracionBajoMouse() {
@@ -832,3 +883,4 @@ function dibujarDeslizadorDecoraciones() {
     fill(arrastrandoDeslizador ? color(200, 150, 0) : color(139, 69, 19));
     rect(g.x, g.thumbY, g.w, g.thumbH, 5);
 }
+
