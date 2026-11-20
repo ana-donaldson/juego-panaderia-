@@ -104,6 +104,7 @@ let imagenesFinalesAlfajor = {};
 let imagenesClientes = {};
 
 let imgInstruccionesCajero;
+let imgInstruccionesCocinero;
 
 
 function preload() {
@@ -116,6 +117,7 @@ function preload() {
     imgCliente = loadImage('assets/persona1.png');
     imgMostrador = loadImage('assets/mueblefeo.png');
     imgInstruccionesCajero = loadImage('assets/instruccion_cajero.jpg');
+    imgInstruccionesCocinero = loadImage('assets/instruccion_cocinero.jpg');
     
      imagenesClientes["Cielo"] = loadImage('assets/chica.png');
     imagenesClientes["Alex"] = loadImage('assets/chico.png');

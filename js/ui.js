@@ -324,7 +324,7 @@ function mostrarInterfazEscena1() {
 
         fill(0);
         textSize(20);
-        text("🧑 " + clientes[clienteActual].nombre, width / 2, 90);
+        text( clientes[clienteActual].nombre, width / 2, 90);
 
         textSize(15);
         let pedidoTexto = "";

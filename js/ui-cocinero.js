@@ -1,32 +1,18 @@
 function mostrarInstruccionesCocinero() {
-    fill(139, 69, 19);
-    textSize(36);
-    text("👨‍🍳 INSTRUCCIONES - COCINERO", width / 2, 70);
+    // 1. Dibujamos la imagen de fondo (igual que en el cajero)
+    if (imgInstruccionesCocinero) {
+        image(imgInstruccionesCocinero, 0, 0, width, 500); // Ajustá el 500 si querés que sea más corta/larga
+    } else {
+        // Respaldo por si no encuentra la imagen
+        fill(240, 230, 215);
+        rect(0, 0, width, height);
+        fill(0);
+        textSize(24);
+        text("Falta la imagen de instrucciones del cocinero", width / 2, height / 2);
+    }
 
-    fill(255, 255, 255, 230);
-    rect(width / 2 - 300, 110, 600, 320, 15);
-
-    fill(0);
-    textSize(18);
-    textAlign(LEFT, TOP);
-
-    let x = width / 2 - 260;
-    let y = 130;
-
-    text("📌 Tu tarea:", x, y);
-    text("   Preparar la receta siguiendo los pasos.", x, y + 30);
-
-    text("⌨️ CONTROLES:", x, y + 80);
-    text("   ← → ↑ ↓  → Seleccionar ingredientes/herramientas", x, y + 110);
-    text("   ENTER o CLIC → Confirmar acción", x, y + 140);
-    text("   ESPACIO  → Hornear / Avanzar", x, y + 170);
-    text("   ESC      → Volver al menú", x, y + 200);
-
-    text("🎯 OBJETIVO:", x, y + 250);
-    text("   Completar la receta sin quemar la comida.", x, y + 280);
-
-    textAlign(CENTER, CENTER);
-    dibujarCartelInteractivo();
+    // 2. Dibujamos el botón de comenzar (que ya tenés programado)
+    dibujarCartelInteractivo(); 
 }
 // Ingrediente que se está arrastrando con el mouse (null si ninguno)
 let ingArrastrando = null;
