@@ -113,6 +113,7 @@ function preload() {
     sonidoBoton = loadSound('sonidos/boton.mp3');
     sonidoMoneda = loadSound('sonidos/moneda.mp3');
     musicaFondo = loadSound('sonidos/musica.mp3');
+     sonidoLlegada = loadSound('sonidos/llegada.mp3');
 
     imgCliente = loadImage('assets/persona1.png');
     imgMostrador = loadImage('assets/mueblefeo.png');
@@ -346,18 +347,24 @@ function draw() {
 // ============================================
 function dibujarEscenaCajero1() {
     dibujarFondo();
+    
     if (clienteAnimando) {
         clienteY = lerp(clienteY, clienteDestinoY, 0.05);
+        
+        // ✅ ACÁ DETECTAMOS QUE TERMINÓ DE SUBIR
         if (abs(clienteY - clienteDestinoY) < 0.5) {
             clienteY = clienteDestinoY;
             clienteAnimando = false;
             clienteVisible = true;
+            
+            // ✅ SUENA LA VOZ JUSTO ACÁ
+            if (sonidoLlegada) sonidoLlegada.play();
         }
     }
+    
     if (clienteVisible) dibujarCliente(clienteY, clienteEnojado);
     dibujarMostrador();
 }
-
 function dibujarEscenaCajero3() { dibujarFondo(); }
 function dibujarEscenaCajero2() { dibujarFondo(); }
 
