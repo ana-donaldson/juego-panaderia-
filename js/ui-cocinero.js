@@ -166,6 +166,116 @@ function mostrarInterfazCocinero1() {
     }
 }
 
+// ============================================
+// BOTONES DEL HORNO (alternativa al teclado)
+// Fila: Temperatura: [◀] 0°C [▶] {hueco} [⏯] {hueco} [⏸] {hueco}   (panel de x 150 a 750)
+// ============================================
+function geomBotonesHorno() {
+    const X0 = 170, X1 = 730, Y = 430, ALTO = 30;   // márgenes del panel y centro vertical de la fila
+    const ANCHO_FLECHA = 22, ANCHO_MEDIA = 40, ANCHO_VALOR = 76;
+    push();
+    textStyle(NORMAL);
+    textSize(18);
+    let anchoEtiqueta = textWidth("Temperatura:");
+    pop();
+    let xMenos = X0 + anchoEtiqueta + 10;
+    let xValor = xMenos + ANCHO_FLECHA + 8;
+    let xMas = xValor + ANCHO_VALOR + 8;
+    let hueco = (X1 - (xMas + ANCHO_FLECHA) - 2 * ANCHO_MEDIA) / 3;   // el espacio que sobra se reparte en 3 partes iguales
+    let xPlay = xMas + ANCHO_FLECHA + hueco;
+    let xStop = xPlay + ANCHO_MEDIA + hueco;
+    let y = Y - ALTO / 2;
+    return {
+        etiquetaX: X0,
+        valorX: xValor + ANCHO_VALOR / 2,
+        menos: { x: xMenos, y: y, w: ANCHO_FLECHA, h: ALTO },
+        mas:   { x: xMas,   y: y, w: ANCHO_FLECHA, h: ALTO },
+        play:  { x: xPlay,  y: y, w: ANCHO_MEDIA,  h: ALTO },
+        stop:  { x: xStop,  y: y, w: ANCHO_MEDIA,  h: ALTO },
+        reintentar: { x: X1 - ANCHO_MEDIA, y: 500 - ALTO / 2, w: ANCHO_MEDIA, h: ALTO }   // [↻] a la derecha de la barra de tiempo
+    };
+}
+
+// Qué botones se pueden usar ahora (mismas condiciones que el teclado en keyPressed)
+function botonesHornoActivos() {
+    return {
+        temp: !coccionExitosa && !hornoEncendido && (coccionFallida ? coccionFallidaPorTemp : progresoHorno === 0),
+        play: !coccionExitosa && !coccionFallida && !hornoEncendido && progresoHorno === 0,
+        stop: hornoEncendido,
+        reintentar: coccionFallida
+    };
+}
+
+function mouseSobreBotonHorno(r) {
+    return mouseX >= r.x && mouseX <= r.x + r.w && mouseY >= r.y && mouseY <= r.y + r.h;
+}
+
+function dibujarBotonesHorno() {
+    let g = geomBotonesHorno();
+    let act = botonesHornoActivos();
+    dibujarBotonHorno(g.menos, "menos", act.temp);
+    dibujarBotonHorno(g.mas, "mas", act.temp);
+    dibujarBotonHorno(g.play, "play", act.play);
+    dibujarBotonHorno(g.stop, "stop", act.stop);
+    dibujarBotonHorno(g.reintentar, "reintentar", act.reintentar);
+}
+
+// Botón monocromático (solo grises y negro). Los símbolos se dibujan con formas para que
+// se vean siempre iguales y en un solo color: ◀ ▶ altos y angostos, ⏯ (play + pausa), ⏸ (pausa).
+function dibujarBotonHorno(r, icono, activo) {
+    let encima = activo && mouseSobreBotonHorno(r);
+    if (encima) cursor(HAND);
+    push();
+    stroke(20);
+    strokeWeight(2);
+    fill(!activo ? 190 : (encima ? 165 : 130));
+    rect(r.x, r.y, r.w, r.h, 6);
+    noStroke();
+    fill(activo ? 25 : 120);
+    let cx = r.x + r.w / 2, cy = r.y + r.h / 2;
+    if (icono === "menos") triangle(cx + 4, cy - 9, cx + 4, cy + 9, cx - 5, cy);        // ◀
+    else if (icono === "mas") triangle(cx - 4, cy - 9, cx - 4, cy + 9, cx + 5, cy);     // ▶
+    else if (icono === "play") {                                                         // ⏯
+        triangle(cx - 14, cy - 9, cx - 14, cy + 9, cx - 3, cy);
+        rect(cx + 2, cy - 9, 4, 18);
+        rect(cx + 9, cy - 9, 4, 18);
+    } else if (icono === "stop") {                                                       // ⏸
+        rect(cx - 7, cy - 9, 5, 18);
+        rect(cx + 2, cy - 9, 5, 18);
+    } else {                                                                             // ↻
+        let a0 = -PI / 6, a1 = a0 + 1.55 * PI, rad = 8;
+        noFill();
+        stroke(activo ? 25 : 120);
+        strokeWeight(2.5);
+        arc(cx, cy, rad * 2, rad * 2, a0, a1);
+        noStroke();
+        fill(activo ? 25 : 120);
+        let px = cx + rad * cos(a1), py = cy + rad * sin(a1);   // punta de la flecha, en sentido horario
+        triangle(px - sin(a1) * 6, py + cos(a1) * 6, px + cos(a1) * 4, py + sin(a1) * 4, px - cos(a1) * 4, py - sin(a1) * 4);
+    }
+    pop();
+}
+
+// Clic en un botón del horno. Reutiliza keyPressed() con la tecla equivalente, así la interacción
+// es exactamente la del teclado: ◀ = flecha izquierda, ▶ = flecha derecha, ⏯ = ENTER, ⏸ = ESPACIO, ↻ = R.
+function clicBotonesHorno() {
+    let g = geomBotonesHorno();
+    let act = botonesHornoActivos();
+    let tecla = null;
+    if (act.temp && mouseSobreBotonHorno(g.menos)) tecla = { k: "ArrowLeft", c: LEFT_ARROW };
+    else if (act.temp && mouseSobreBotonHorno(g.mas)) tecla = { k: "ArrowRight", c: RIGHT_ARROW };
+    else if (act.play && mouseSobreBotonHorno(g.play)) tecla = { k: "Enter", c: ENTER };
+    else if (act.stop && mouseSobreBotonHorno(g.stop)) tecla = { k: " ", c: 32 };
+    else if (act.reintentar && mouseSobreBotonHorno(g.reintentar)) tecla = { k: "r", c: 82 };
+    if (!tecla) return false;
+    if (sonidoBoton) sonidoBoton.play();
+    let keyPrev = key, keyCodePrev = keyCode;
+    key = tecla.k;
+    keyCode = tecla.c;
+    try { keyPressed(); } finally { key = keyPrev; keyCode = keyCodePrev; }
+    return true;
+}
+
 function mostrarInterfazCocinero2() {
     // Título
     fill(139, 69, 19);
@@ -190,18 +300,20 @@ function mostrarInterfazCocinero2() {
 
     // Panel de control del horno (más alto: temperatura arriba, barra de tiempo abajo)
     fill(255, 255, 255, 220);
-    rect(250, 408, 400, 124, 10);
+    rect(150, 408, 600, 124, 10);   // más ancho para que entren los botones
 
     // ==========================================
     // TEMPERATURA
     // ==========================================
+    let gb = geomBotonesHorno();   // posiciones de la fila: Temperatura: [◀] 0°C [▶] ... [⏯] ... [⏸]
     fill(0);
     textSize(18);
-    text("Temperatura:", 335, 430);
+    push(); textAlign(LEFT, CENTER); text("Temperatura:", gb.etiquetaX, 430); pop();
     
     // Si está encendido, mostrar la que eligió, si no, la de la receta como guía
     textSize(24);
-    text(temperaturaHorno + "°C", 460, 430);
+    text(temperaturaHorno + "°C", gb.valorX, 430);
+    dibujarBotonesHorno();
 
     // Indicador de si está bien o mal (solo cuando está encendido)
     if (hornoEncendido) {
@@ -211,7 +323,7 @@ function mostrarInterfazCocinero2() {
             fill(200, 0, 0); // Rojo
         }
         textSize(14);
-        text("(Receta: " + recetaActual.temperatura + "°C)", 580, 430);
+        push(); textAlign(LEFT, CENTER); text("(Receta: " + recetaActual.temperatura + "°C)", gb.etiquetaX, 466); pop();   // debajo de "Temperatura:" (la fila ahora lleva los botones)
     }
     // Temperatura pedida por la receta (cartel resaltado)
     dibujarAviso("🌡️ Temperatura pedida: " + recetaActual.temperatura + "°C", width / 2, 176, "suave");

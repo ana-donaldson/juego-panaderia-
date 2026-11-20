@@ -238,7 +238,7 @@ for (let n in IMG_HUEVO) {
     cargarImagenOpcional('assets/recetas/' + IMG_HUEVO[n].con, imagenesPintado, n + "_con");
 }
 // Imagen de la bandeja de "Dar brillo" (se dibuja en el mismo rectángulo 100,100,700x400 que el cuadro gris)
-cargarImagenOpcional('assets/bandeja-metal-dar-brillo.png', imagenesPintado, "bandeja");
+cargarImagenOpcional('assets/recetas/bandeja.png', imagenesPintado, "bandeja");
     createCanvas(900, 600);
       let canvas = createCanvas(900, 600);
     canvas.style('background', 'transparent'); // Le decimos que no tenga fondo
@@ -564,8 +564,8 @@ function keyPressed() {
                 let margen = 25; 
                 if (progresoHorno >= meta - margen && progresoHorno <= meta + margen) {
                     let difTemp = temperaturaHorno - recetaActual.temperatura;   // más de 30 °C de diferencia = no queda bien aunque acierte el tiempo
-                    if (difTemp < -20) fallarCoccionPorTemperatura("¡Quedó crudo! Ajusta la temperatura y luego presiona R para volver a intentar!");
-                    else if (difTemp > 20) fallarCoccionPorTemperatura("¡Quedó quemado! Ajusta la temperatura y luego presiona R para volver a intentar!");
+                    if (difTemp < -30) fallarCoccionPorTemperatura("¡Quedó crudo! Ajusta la temperatura y luego presiona R para volver a intentar!");
+                    else if (difTemp > 30) fallarCoccionPorTemperatura("¡Quedó quemado! Ajusta la temperatura y luego presiona R para volver a intentar!");
                     else { coccionExitosa = true; mensaje = "✅ ¡Perfecto! Quedó en su punto."; mensajeColor = color(0, 150, 0); }
                 } else {
                     let motivo = progresoHorno < meta ? "crudo" : "quemado";
@@ -720,6 +720,9 @@ function avanzarDesdeHorno() {
             }
         }
     }
+
+    // ✅ BOTONES DEL HORNO (alternativa al teclado)
+    if (estado === "cocinero_escena2" && clicBotonesHorno()) return;
 
     // ✅ CLICS EN CARTELES INTERACTIVOS
     let cartel = cartelInteractivo();
