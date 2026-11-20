@@ -309,7 +309,7 @@ function mostrarInterfazCocinero3() {
 
         // Si está seleccionada con el cursor, le ponemos un borde
         if (i === indiceProductoPintar) {
-            stroke(255, 0, 0);
+            stroke(255, 248, 232);
             strokeWeight(4);
             noFill();
             ellipse(x, y, 130, 90);

@@ -214,11 +214,15 @@ cargarImagenOpcional('assets/recetas/alfajor/chips_cocoA.jpg', imagenesFinalesAl
 
 cargarImagenOpcional('assets/recetas/alfajor/baño_vainillaA.jpg', imagenesFinalesAlfajor, "baño_vainilla");
 // ---- Pintado con huevo: una imagen "sin" y otra "con" huevo por receta que lo usa ----
-    for (let n of ["Medialunas", "Tortas", "Facturas"]) {
-        cargarImagenOpcional('assets/huevo/' + n.toLowerCase() + '_sin.png', imagenesPintado, n + "_sin");
-        cargarImagenOpcional('assets/huevo/' + n.toLowerCase() + '_con.png', imagenesPintado, n + "_con");
-    }
-
+const IMG_HUEVO = {
+    Medialunas: { sin: 'medialuna-sin-brillo.png', con: 'medialuna-brillo.png' },
+    Panes:      { sin: 'pan-sin-brillo.png',       con: 'pan-con-brillo.png' },
+    Facturas:   { sin: 'factura-sin-brillo.png',   con: 'factura-con-brillo.png' }
+};
+for (let n in IMG_HUEVO) {
+    cargarImagenOpcional('assets/recetas/' + IMG_HUEVO[n].sin, imagenesPintado, n + "_sin");
+    cargarImagenOpcional('assets/recetas/' + IMG_HUEVO[n].con, imagenesPintado, n + "_con");
+}
     createCanvas(900, 600);
       let canvas = createCanvas(900, 600);
     canvas.style('background', 'transparent'); // Le decimos que no tenga fondo
