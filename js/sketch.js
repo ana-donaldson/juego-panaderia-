@@ -101,6 +101,9 @@ let imagenesFinalesTorta = {};
 let imagenesFinalesFactura = {};
 let imagenesFinalesGalleta = {};
 let imagenesFinalesAlfajor = {};
+let imagenesClientes = {};
+
+let imgInstruccionesCajero;
 
 
 function preload() {
@@ -112,7 +115,14 @@ function preload() {
 
     imgCliente = loadImage('assets/persona1.png');
     imgMostrador = loadImage('assets/mueblefeo.png');
+    imgInstruccionesCajero = loadImage('assets/instruccion_cajero.jpg');
     
+     imagenesClientes["Cielo"] = loadImage('assets/chica.png');
+    imagenesClientes["Alex"] = loadImage('assets/chico.png');
+    imagenesClientes["gato"] = loadImage('assets/gatoo.png');
+    imagenesClientes["fantasma"] = loadImage('assets/fantasma.png');
+    imagenesClientes["alien"] = loadImage('assets/ovni.png');
+
     imagenesProductos["Pan"] = loadImage('assets/productos/pan.jpg');
     imagenesProductos["Factura"] = loadImage('assets/productos/factura.jpg');
     imagenesProductos["Medialuna"] = loadImage('assets/productos/medialuna.jpg');

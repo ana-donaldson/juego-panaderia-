@@ -2,11 +2,11 @@
 // cargarCliente() usando generarPedidoAleatorio() y generarPagoAleatorio()
 // (más abajo en este archivo). Acá solo quedan los nombres.
 const clientes = [
-    { nombre: "Doña Rosa" },
-    { nombre: "Don José" },
-    { nombre: "Señora Marta" },
-    { nombre: "Don Carlos" },
-    { nombre: "Señora Laura" }
+    { nombre: "Cielo" },
+    { nombre: "Alex" },
+    { nombre: "gato" },
+    { nombre: "fantasma" },
+    { nombre: "alien" }
 ];
 
 // ---------- PRODUCTOS DEL MODO CAJERO ----------

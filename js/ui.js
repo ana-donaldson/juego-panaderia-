@@ -21,7 +21,7 @@ function dibujarFondo() {
 }
 function dibujarMostrador() {
     if (imgMostrador) {
-        let alto = 200;
+        let alto = 700;
         image(imgMostrador, 0, height - alto, width, alto);
     } else {
         dibujarMostradorFormas();
@@ -174,7 +174,7 @@ function mostrarInterfazCajero() {
 
     fill(0);
     textSize(18);
-    text("🧑 " + clientes[clienteActual].nombre, 450, 110);
+    text( clientes[clienteActual].nombre, 450, 110);
 
         textSize(15);
         let pedidoTexto = "";
@@ -954,37 +954,22 @@ function dibujarCartelInteractivo() {
     if (mouseSobreAviso(c.lineas, c.cx, c.cy, c.nivel)) cursor(HAND);
 }
 function mostrarInstrucciones() {
-    fill(139, 69, 19);
-    textSize(36);
-    text("🎮 INSTRUCCIONES", width / 2, 70);
+    // 1. Dibujamos la imagen de fondo
+    if (imgInstruccionesCajero) {
+        // La dibujamos centrada, un poquito más arriba para dejar espacio abajo
+        image(imgInstruccionesCajero, 0, 0, width, height - 60); 
+    } else {
+        // Si no encuentra la imagen, muestra el fondo por defecto
+        fill(240, 230, 215);
+        rect(0, 0, width, height);
+        fill(0);
+        textSize(24);
+        text("Falta la imagen de instrucciones", width / 2, height / 2);
+    }
 
-    fill(255, 255, 255, 230);
-    rect(width / 2 - 300, 110, 600, 320, 15);
-
-    fill(0);
-    textSize(18);
-    textAlign(LEFT, TOP);
-
-    let x = width / 2 - 260;
-    let y = 130;
-
-    text("📌 Tu tarea:", x, y);
-    text("   Atender a los clientes y darles el vuelto.", x, y + 30);
-
-    text("⌨️ CONTROLES:", x, y + 80);
-    text("   Números (0-9)  → Escribir el vuelto", x, y + 110);
-    text("   . (Punto)      → Punto decimal", x, y + 140);
-    text("   ENTER          → Confirmar el vuelto", x, y + 170);
-    text("   BACKSPACE      → Borrar el último dígito", x, y + 200);
-    text("   ESC            → Volver al menú", x, y + 230);
-
-    text("🎯 OBJETIVO:", x, y + 275);
-    text("   Atender a 5 clientes.", x, y + 305);
-
-    textAlign(CENTER, CENTER);
-    dibujarCartelInteractivo(); // Usa los carteles de Coro
+    // 2. Dibujamos el botón de comenzar (que sigue funcionando igual)
+    dibujarCartelInteractivo(); 
 }
-
 // ============================================
 // TEMPORIZADOR Y RANKING (dibujo)
 // ============================================

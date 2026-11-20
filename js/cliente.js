@@ -6,29 +6,31 @@
 // ============================================
 
 function dibujarCliente(y, enojado) {
-    // Si la imagen existe, dibujarla
-    if (imgCliente) {
-        // Valores ajustados según el tamaño de tu imagen
-        let ancho = 180;
+    // Buscamos el nombre del cliente actual para saber qué imagen mostrar
+    let nombreCliente = clientes[clienteActual].nombre;
+    let imgClienteActual = imagenesClientes[nombreCliente];
+
+    if (imgClienteActual) {
+        // ✅ Si la imagen existe, la dibujamos
+        let ancho = 250;
         let alto = 250;
-        let x = width/2 - ancho/2;
-        let yPos = y - alto/2 + 30; // +30 para que quede bien ubicado
-        
-        // Si está enojado, se le agrega un filtro rojizo.
+        let x = width / 2 - ancho / 2;
+           let yPos = y - alto / 2 - 20; // ✅ Sube bastante
+
+        // Si está enojado, le ponemos un filtro rojizo (opcional)
         if (enojado) {
-            tint(255, 100, 100); // Tinte rojizo
+            tint(255, 100, 100); 
         } else {
-            tint(255, 255, 255); // Normal
+            tint(255, 255, 255);
         }
-        
-        image(imgCliente, x, yPos, ancho, alto);
-        noTint(); // Resetear el tinte
+
+        image(imgClienteActual, x, yPos, ancho, alto);
+        noTint(); // Quitamos el filtro
     } else {
-        // Si no se cargó la imagen, dibujar el cliente con formas (fallback)
+        // Si no hay imagen, dibuja el monigote viejo
         dibujarClienteFormas(y, enojado);
     }
 }
-
 // Función de respaldo (la que ya tenías)
 function dibujarClienteFormas(y, enojado) {
     push();
