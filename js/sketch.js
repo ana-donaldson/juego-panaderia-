@@ -251,9 +251,73 @@ cargarImagenOpcional('assets/recetas/bandeja.png', imagenesPintado, "bandeja");
         musicaFondo.setVolume(0.3);
 }
 
+// ============================================
+// TECLADO VIRTUAL DEL CELULAR (Caja Registradora)
+// ============================================
+// El vuelto se dibuja en el lienzo, así que se usa un <input> invisible que recibe el foco
+// y abre el teclado nativo del celular. Lo que se escribe en él se copia a inputVuelto.
+// Solo se crea en dispositivos táctiles: en la computadora no cambia nada.
+let campoVuelto = null;
+let campoVueltoEnfocado = false;
+const esDispositivoTactil = () =>
+    (window.matchMedia && window.matchMedia('(pointer: coarse)').matches) || navigator.maxTouchPoints > 0;
+const cajaActiva = () => estado === "cajero_escena2" && vueltoCorrecto > 0;
+
+function obtenerCampoVuelto() {
+    if (campoVuelto || !esDispositivoTactil()) return campoVuelto;
+    const c = document.createElement('input');
+    c.type = 'text';
+    c.inputMode = 'decimal';                 // teclado numérico con punto/coma decimal
+    c.setAttribute('enterkeyhint', 'done');
+    c.setAttribute('autocomplete', 'off');
+    c.setAttribute('aria-label', 'Importe del vuelto');
+    // Invisible pero enfocable (no display:none). 16px evita el zoom automático de iOS.
+    c.style.cssText = 'position:fixed;left:50%;bottom:0;width:1px;height:1px;opacity:0;border:0;padding:0;font-size:16px;z-index:0;';
+    c.addEventListener('input', () => {
+        if (!cajaActiva() || mostrandoResultado) return;
+        let v = c.value.replace(/,/g, '.').replace(/[^0-9.]/g, '');
+        const i = v.indexOf('.');
+        if (i >= 0) v = v.slice(0, i + 1) + v.slice(i + 1).replace(/\./g, '');
+        inputVuelto = v.slice(0, 8);         // mismo límite que el teclado físico
+        c.value = inputVuelto;
+    });
+    // El input es la fuente del texto: se corta la propagación para que keyPressed no duplique
+    // los dígitos. ENTER y ESC sí pasan, así siguen funcionando igual que siempre.
+    c.addEventListener('keydown', e => { if (e.key !== 'Enter' && e.key !== 'Escape') e.stopPropagation(); });
+    c.addEventListener('focus', () => { campoVueltoEnfocado = true; });
+    c.addEventListener('blur', () => { campoVueltoEnfocado = false; });
+    document.body.appendChild(c);
+    campoVuelto = c;
+    return c;
+}
+
+// Pide el foco (abre el teclado). Funciona cuando se llama dentro de un gesto del usuario.
+function activarTecladoVuelto() {
+    if (!cajaActiva()) return;
+    const c = obtenerCampoVuelto();
+    if (c && document.activeElement !== c) c.focus({ preventScroll: true });
+}
+
+// Se llama en cada draw(): mantiene el campo alineado con inputVuelto y lo suelta al salir de la caja.
+function sincronizarTecladoVuelto() {
+    if (!campoVuelto) return;
+    if (cajaActiva()) {
+        if (campoVuelto.value !== inputVuelto) campoVuelto.value = inputVuelto;
+    } else if (document.activeElement === campoVuelto) {
+        campoVuelto.blur();                  // cierra el teclado al salir de la caja
+    }
+}
+
+// Respaldo: algunos navegadores solo abren el teclado con un toque "completo".
+// Si al entrar a la caja no quedó enfocado, el primer toque cualquiera lo enfoca.
+['touchend', 'click'].forEach(ev => document.addEventListener(ev, () => {
+    if (cajaActiva() && !campoVueltoEnfocado) activarTecladoVuelto();
+}, true));
+
 function draw() {
     clear();
     cursor(ARROW);
+    sincronizarTecladoVuelto();
     
     // LÓGICA DEL HORNO
     if (estado === "cocinero_escena2" && hornoEncendido) {
@@ -880,3 +944,4 @@ function reiniciarJuego() {
     bolsa = [];
     productoSeleccionado = 0;
 }
+

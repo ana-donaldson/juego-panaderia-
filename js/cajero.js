@@ -193,6 +193,7 @@ function irACobrar() {
     estado = "cajero_escena2";
     inputVuelto = "";
     mensaje = "";
+    activarTecladoVuelto();   // celular: enfoca el campo y abre el teclado nativo
 }
 
 function bolsaCompleta() {
@@ -287,3 +288,4 @@ function enviarProgreso(modo) {
         else { pendCajero.puntos += pend.puntos; pendCajero.clientes += pend.clientes; }
     });
 }
+
