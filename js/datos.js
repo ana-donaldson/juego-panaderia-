@@ -4,9 +4,9 @@
 const clientes = [
     { nombre: "Cielo" },
     { nombre: "Alex" },
-    { nombre: "gato" },
-    { nombre: "fantasma" },
-    { nombre: "alien" }
+    { nombre: "Félix" },
+    { nombre: "Gasparin" },
+    { nombre: "Marcela" }
 ];
 
 // ---------- PRODUCTOS DEL MODO CAJERO ----------
