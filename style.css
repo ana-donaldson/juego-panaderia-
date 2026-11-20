@@ -26,11 +26,15 @@ body {
 }
 
 canvas {
-    border-radius: 12px;
-    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
     display: block;
     position: relative;
-    z-index: 1; /* El canvas va adelante del video */
+    z-index: 1;
+
+    /* Adaptación automática a celulares */
+    width: min(100vw, 150vh);
+    height: auto;
+    max-width: 100vw;
+    max-height: 100vh;
 }
 
 /* En el menú no hay "cuadro": se ve solo el video de fondo con los botones y las tablas encima */
