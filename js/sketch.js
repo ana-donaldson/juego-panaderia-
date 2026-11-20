@@ -68,6 +68,7 @@ let vidasCocinero = 3; // ✅ Esto va UNA SOLA VEZ acá.
 // Estado de la cocción
 let coccionFallida = false;
 let coccionFallidaDesde = 0;
+let coccionFallidaPorTemp = false;   // la cocción falló por más de 30 °C de diferencia con la receta (aviso informativo, sin clic)
 let coccionExitosa = false;
 let teclaTempDesde = 0;
 let teclaTempUltimo = 0;
@@ -236,6 +237,8 @@ for (let n in IMG_HUEVO) {
     cargarImagenOpcional('assets/recetas/' + IMG_HUEVO[n].sin, imagenesPintado, n + "_sin");
     cargarImagenOpcional('assets/recetas/' + IMG_HUEVO[n].con, imagenesPintado, n + "_con");
 }
+// Imagen de la bandeja de "Dar brillo" (se dibuja en el mismo rectángulo 100,100,700x400 que el cuadro gris)
+cargarImagenOpcional('assets/bandeja-metal-dar-brillo.png', imagenesPintado, "bandeja");
     createCanvas(900, 600);
       let canvas = createCanvas(900, 600);
     canvas.style('background', 'transparent'); // Le decimos que no tenga fondo
@@ -331,6 +334,11 @@ function draw() {
     // Reloj de la partida
     if (tiempoInicio > 0 && (estado.startsWith("cajero_escena") || estado.startsWith("cocinero_escena") || estado === "fin")) {
         dibujarTemporizador();
+    }
+
+    // Vidas del modo Cocinero (arriba a la izquierda, igual que en el Cajero)
+    if (estado.startsWith("cocinero_escena")) {
+        dibujarVidasCocinero();
     }
 
      if (estado !== "menu" && estado !== "instrucciones") {
@@ -535,6 +543,10 @@ function keyPressed() {
             return;
         }
         if (coccionFallida) {
+            if (coccionFallidaPorTemp) {   // este aviso pide ajustar la temperatura antes de reintentar
+                if (keyCode === LEFT_ARROW) { temperaturaHorno = Math.max(0, temperaturaHorno - 10); teclaTempDesde = millis(); teclaTempUltimo = millis(); }
+                if (keyCode === RIGHT_ARROW) { temperaturaHorno = Math.min(300, temperaturaHorno + 10); teclaTempDesde = millis(); teclaTempUltimo = millis(); }
+            }
             if (key === 'r' || key === 'R') reintentarCoccion();
             return;
         }
@@ -551,7 +563,10 @@ function keyPressed() {
                 let meta = recetaActual.tiempoIdeal * 15; 
                 let margen = 25; 
                 if (progresoHorno >= meta - margen && progresoHorno <= meta + margen) {
-                    coccionExitosa = true; mensaje = "✅ ¡Perfecto! Quedó en su punto."; mensajeColor = color(0, 150, 0);
+                    let difTemp = temperaturaHorno - recetaActual.temperatura;   // más de 30 °C de diferencia = no queda bien aunque acierte el tiempo
+                    if (difTemp < -20) fallarCoccionPorTemperatura("¡Quedó crudo! Ajusta la temperatura y luego presiona R para volver a intentar!");
+                    else if (difTemp > 20) fallarCoccionPorTemperatura("¡Quedó quemado! Ajusta la temperatura y luego presiona R para volver a intentar!");
+                    else { coccionExitosa = true; mensaje = "✅ ¡Perfecto! Quedó en su punto."; mensajeColor = color(0, 150, 0); }
                 } else {
                     let motivo = progresoHorno < meta ? "crudo" : "quemado";
                     fallarCoccion("❌ ¡Quedó " + motivo + "!");
@@ -862,4 +877,3 @@ function reiniciarJuego() {
     bolsa = [];
     productoSeleccionado = 0;
 }
-

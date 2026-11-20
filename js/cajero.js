@@ -167,6 +167,7 @@ function avanzarSinVuelto() {
 function irAArmarPedido() {
     if (!clienteVisible) return;
     estado = "cajero_escena3";
+    recordatorioPedidoDesde = 0;   // el recordatorio del pedido solo aparece tras un intento fallido de cobrar
     productoSeleccionado = 0;
     bolsa = [];
     mensaje = "";
@@ -176,6 +177,7 @@ function irAArmarPedido() {
 function irACobrar() {
     // Si la bolsa no está completa o tiene cosas de más...
     if (!bolsaCompleta()) {
+        recordatorioPedidoDesde = millis();   // dispara el recordatorio del pedido (fade-in de 3 s)
         if (vidas > 0) {
             vidas--;
             mostrarAvisoError("❌ ¡Pedido incorrecto! Se descontó 1 vida.");

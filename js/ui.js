@@ -5,6 +5,8 @@ sonidoLlegada.volume = 1;
 sonidoLlegada.preload = "auto";
 
 let clienteAnterior=-1;
+let recordatorioPedidoDesde = 0;   // millis() del último intento de cobrar con la bolsa incorrecta (0 = no mostrar)
+const RECORDATORIO_FADE_MS = 3000; // el recordatorio pasa de invisible a visible en 3 s
 
 
 function dibujarFondo() {
@@ -371,6 +373,17 @@ function mostrarInterfazEscena3() {
     textSize(28);
     text("🥖 ARMÁ EL PEDIDO", width / 2, 120);
 
+    // Recordatorio del pedido (solo tras intentar cobrar con la bolsa incorrecta):
+    // una línea, justo debajo del título y encima de los productos, con fade-in de 3 s
+    if (recordatorioPedidoDesde > 0) {
+        let partes = [];
+        for (let i = 0; i < pedidoActual.length; i++) {
+            partes.push(pedidoActual[i].cantidad + " x " + pedidoActual[i].producto);
+        }
+        let alfaRecordatorio = constrain(map(millis() - recordatorioPedidoDesde, 0, RECORDATORIO_FADE_MS, 0, 255), 0, 255);
+        dibujarAviso("Pedido: " + partes.join(", "), width / 2, 158, "suave", undefined, alfaRecordatorio);
+    }
+
     // Productos en una sola fila
     let productosMostrar = productos;
     let anchoProducto = 132;
@@ -727,7 +740,8 @@ function dibujarAnimaciones() {
 // nivel:  "fuerte" (llamado principal) o "suave" (recordatorio o mensaje)
 // col:    color opcional del borde y del texto (nivel "suave")
 // alfa:   opcional, 0-255 (255 = totalmente visible). Sirve para el difuminado.
-function dibujarAviso(lineas, cx, cy, nivel, col, alfa) {
+// estatico: opcional, true = cartel quieto (sin agrandarse al pasar el mouse ni latido del borde)
+function dibujarAviso(lineas, cx, cy, nivel, col, alfa, estatico) {
     if (alfa === undefined) alfa = 255;
     if (alfa <= 0) return;
     if (!Array.isArray(lineas)) lineas = String(lineas).split("\n");
@@ -744,7 +758,7 @@ function dibujarAviso(lineas, cx, cy, nivel, col, alfa) {
     textAlign(CENTER, CENTER);
 
     // ¿El mouse está encima?
-    let encima = mouseX > cx - ancho / 2 && mouseX < cx + ancho / 2 &&
+    let encima = !estatico && mouseX > cx - ancho / 2 && mouseX < cx + ancho / 2 &&
                  mouseY > cy - alto / 2 && mouseY < cy + alto / 2;
 
     translate(cx, cy);
@@ -757,7 +771,7 @@ function dibujarAviso(lineas, cx, cy, nivel, col, alfa) {
 
     // Fondo y borde
     if (fuerte) {
-        let pulso = 3 + sin(frameCount * 0.08);          // latido suave del borde
+        let pulso = estatico ? 3 : 3 + sin(frameCount * 0.08);          // latido suave del borde
         if (encima) fill(160, 82, 30, alfa); else fill(139, 69, 19, alfa);
         stroke(217, 164, 65, alfa);
         strokeWeight(encima ? 5 : pulso);
@@ -901,9 +915,9 @@ function cartelInteractivo() {
                  ], cx: width / 2, cy: 555, nivel: "suave", accion: irACobrar };
     }
     if (estado === "cocinero_escena1") {
-        if (pasoIngrediente >= recetaActual.ingredientes.length) {
+        if (ingredientesEnBowl.length >= recetaActual.ingredientes.length) {
             return { lineas: "¡Todo listo! Haz click aquí o presiona la tecla ESPACIO para ir al horno",
-                     cx: width / 2, cy: 557, nivel: "fuerte", accion: irAlHorno };
+                     cx: width / 2, cy: 557, nivel: "fuerte", accion: irAlHorno, estatico: true };
         }
         return { lineas: [
                     "Presione las teclas '← → ↑ ↓' y 'ENTER', o haga clic en un ingrediente, para agregarlo",
@@ -916,6 +930,7 @@ function cartelInteractivo() {
                      cx: width / 2, cy: 561, nivel: "fuerte", accion: avanzarDesdeHorno };
         }
         if (coccionFallida) {
+            if (coccionFallidaPorTemp) return null;   // aviso de temperatura: solo informativo, no es clicable (lo dibuja mostrarInterfazCocinero2)
             let alfa = alfaMensaje();
             if (mensaje === "" || alfa <= 0) return null;
             return { lineas: mensaje, cx: width / 2, cy: 122, nivel: "suave",
@@ -950,8 +965,8 @@ function cartelInteractivo() {
 function dibujarCartelInteractivo() {
     let c = cartelInteractivo();
     if (!c) return;
-    dibujarAviso(c.lineas, c.cx, c.cy, c.nivel, c.col, c.alfa);
-    if (mouseSobreAviso(c.lineas, c.cx, c.cy, c.nivel)) cursor(HAND);
+    dibujarAviso(c.lineas, c.cx, c.cy, c.nivel, c.col, c.alfa, c.estatico);
+    if (!c.estatico && mouseSobreAviso(c.lineas, c.cx, c.cy, c.nivel)) cursor(HAND);
 }
 function mostrarInstrucciones() {
     // 1. Dibujamos la imagen de fondo

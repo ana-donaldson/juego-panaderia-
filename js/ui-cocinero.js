@@ -21,19 +21,30 @@ function mouseSobreBowl() {
     return mouseX >= 340 && mouseX <= 560 && mouseY >= 150 && mouseY <= 300;
 }
 
+// Contador de vidas del modo Cocinero (mismo formato que el del modo Cajero)
+function dibujarVidasCocinero() {
+    push();
+    noStroke();
+    fill(0);
+    textSize(18);
+    textAlign(LEFT, TOP);
+    text("❤️ Vidas: " + vidasCocinero, 20, 20);
+    pop();
+}
+
 function mostrarInterfazCocinero1() {
     // --- PANEL IZQUIERDO: Lista de Ingredientes ---
     fill(255, 255, 255, 220);
-    rect(20, 20, 250, 250, 10);
+    rect(20, 60, 250, 250, 10);
     
     fill(0);
     textSize(18);
     textAlign(CENTER, CENTER);
-    text("Receta: " + recetaActual.nombre, 145, 45);
+    text("Receta: " + recetaActual.nombre, 145, 85);
     
     textAlign(LEFT, CENTER);
     textSize(14);
-    let yIng = 80;
+    let yIng = 120;
     for (let i = 0; i < recetaActual.ingredientes.length; i++) {
         let ing = recetaActual.ingredientes[i];
         
@@ -248,10 +259,23 @@ function mostrarInterfazCocinero2() {
     }
 
     // Mensaje (error o acierto). Si la cocción falló, el cartel de reintento lo dibuja dibujarCartelInteractivo()
-    if (mensaje !== "" && !coccionFallida) {
+    if (mensaje !== "" && (!coccionFallida || coccionFallidaPorTemp)) {   // el aviso de temperatura se dibuja acá (sin clic)
         dibujarAviso(mensaje, width / 2, 122, "suave", mensajeColor, alfaMensaje());
     }
     dibujarCartelInteractivo();
+}
+
+// Desplazamiento que centra TODO el conjunto de piezas dentro de la bandeja gris (rect 100,100,700x400).
+// Se calcula con la cantidad de piezas (3 columnas, separación 200x160, pieza 120x80), así sirve para cualquier cantidad.
+function desplazamientoBandeja(total) {
+    let cols = Math.min(3, total);
+    let filas = Math.ceil(total / 3);
+    let anchoConjunto = (cols - 1) * 200 + 120;
+    let altoConjunto = (filas - 1) * 160 + 80;
+    return {
+        x: (100 + 700 / 2) - (180 - 60 + anchoConjunto / 2),
+        y: (100 + 400 / 2) - (200 - 40 + altoConjunto / 2)
+    };
 }
 
 function mostrarInterfazCocinero3() {
@@ -260,19 +284,22 @@ function mostrarInterfazCocinero3() {
     textSize(28);
     text(" DAR BRILLO", width / 2, 50);
 
-    // Bandeja de horno
-    fill(100, 100, 100);
-    rect(100, 100, 700, 400, 20);
+    // Bandeja de horno (con la imagen si existe; si no, el cuadro gris de siempre)
+    if (imagenesPintado["bandeja"]) {
+        image(imagenesPintado["bandeja"], 100, 100, 700, 400);
+    } else {
+        fill(100, 100, 100);
+        rect(100, 100, 700, 400, 20);
+    }
 
-    // Instrucción
-    fill(0);
-    textSize(18);
-    text("Usá las flechas o hacé clic para pintar con huevo todo el lote de " + recetaActual.nombre + ".", width / 2, 130);
+    // Instrucción (cartel solo informativo: no está en cartelInteractivo(), así que no responde a clics)
+    dibujarAviso("Usá las flechas o hacé clic para pintar con huevo todo el lote de " + recetaActual.nombre + ".", width / 2, 130, "suave", undefined, undefined, true);
 
     // Dibujar los productos en la bandeja
     let totalProductos = 6; // Simulamos una bandeja con 6 medialunas
-    let inicioX = 180;
-    let inicioY = 200;
+    let desp = desplazamientoBandeja(totalProductos);
+    let inicioX = 180 + desp.x;
+    let inicioY = 200 + desp.y;
     
     for (let i = 0; i < totalProductos; i++) {
         let col = i % 3; // 3 columnas
@@ -618,6 +645,7 @@ function iniciarReceta(i) {
     indiceProductoPintar = 0;
     indiceDecoracionSeleccionada = 0;
     coccionFallida = false;
+    coccionFallidaPorTemp = false;
     coccionExitosa = false;
     decoracionElegida = "";
     decoracionesElegidas = [];
@@ -738,14 +766,26 @@ function entregarProducto() {
 function fallarCoccion(texto) {
     hornoEncendido = false;
     coccionFallida = true;
+    coccionFallidaPorTemp = false;
     coccionFallidaDesde = millis();
     mostrarAvisoError(texto + "\nHaz click aquí o presiona la tecla R para reintentar");
+}
+
+// Falla por temperatura (más de 30 °C de diferencia con la receta): mismo aviso rojo con fade,
+// pero solo informativo (no clicable). Se puede ajustar la temperatura y reintentar con R.
+function fallarCoccionPorTemperatura(texto) {
+    hornoEncendido = false;
+    coccionFallida = true;
+    coccionFallidaPorTemp = true;
+    coccionFallidaDesde = millis();
+    mostrarAvisoError(texto);
 }
 
 // Vuelve a dejar el horno listo para otro intento (la usan la tecla R y el cartel)
 function reintentarCoccion() {
     if (!coccionFallida) return;
     coccionFallida = false;
+    coccionFallidaPorTemp = false;
     hornoEncendido = false;
     progresoHorno = 0;
     mensaje = "";
@@ -754,7 +794,8 @@ function reintentarCoccion() {
 
 // Temperatura del horno manteniendo ← o → (cada paso = 10 °C)
 function actualizarTemperaturaMantenida() {
-    if (hornoEncendido || progresoHorno !== 0 || coccionFallida || coccionExitosa) return;
+    if (hornoEncendido || coccionExitosa) return;
+    if (!coccionFallidaPorTemp && (progresoHorno !== 0 || coccionFallida)) return;   // tras fallar por temperatura se puede ajustar
     let dir = (keyIsDown(RIGHT_ARROW) ? 1 : 0) - (keyIsDown(LEFT_ARROW) ? 1 : 0);
     if (dir === 0) { teclaTempDesde = 0; return; }
     if (teclaTempDesde === 0) {   // tecla ya sostenida: empezar a contar desde ahora
@@ -774,8 +815,9 @@ function actualizarTemperaturaMantenida() {
 // Índice de la pieza bajo el mouse (-1 si no hay ninguna). Mismas posiciones que en mostrarInterfazCocinero3
 function piezaBajoMouse() {
     for (let i = 0; i < 6; i++) {
-        let x = 180 + (i % 3) * 200;
-        let y = 200 + Math.floor(i / 3) * 160;
+        let desp = desplazamientoBandeja(6);
+        let x = 180 + desp.x + (i % 3) * 200;
+        let y = 200 + desp.y + Math.floor(i / 3) * 160;
         let dx = (mouseX - x) / 60, dy = (mouseY - y) / 40;
         if (dx * dx + dy * dy <= 1) return i;
     }
@@ -869,4 +911,3 @@ function dibujarDeslizadorDecoraciones() {
     fill(arrastrandoDeslizador ? color(200, 150, 0) : color(139, 69, 19));
     rect(g.x, g.thumbY, g.w, g.thumbH, 5);
 }
-
