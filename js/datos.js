@@ -4,7 +4,7 @@
 const clientes = [
     { nombre: "Cielo" },
     { nombre: "Alex" },
-    { nombre: "Félix" },
+    { nombre: "Felix" },
     { nombre: "Gaster" },
     { nombre: "Marcela" }
 ];
