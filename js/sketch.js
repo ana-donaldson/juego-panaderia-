@@ -123,9 +123,9 @@ function preload() {
     
      imagenesClientes["Cielo"] = loadImage('assets/chica.png');
     imagenesClientes["Alex"] = loadImage('assets/chico.png');
-    imagenesClientes["gato"] = loadImage('assets/gatoo.png');
-    imagenesClientes["fantasma"] = loadImage('assets/fantasma.png');
-    imagenesClientes["alien"] = loadImage('assets/ovni.png');
+    imagenesClientes["Felix"] = loadImage('assets/gatoo.png');
+    imagenesClientes["Gaster"] = loadImage('assets/fantasma.png');
+    imagenesClientes["Marcela"] = loadImage('assets/ovni.png');
 
     imagenesProductos["Pan"] = loadImage('assets/productos/pan.jpg');
     imagenesProductos["Factura"] = loadImage('assets/productos/factura.jpg');
