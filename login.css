@@ -44,6 +44,13 @@ a,.link{color:var(--jam);background:none;border:0;font:inherit;text-decoration:u
 .estado.exito{background:#dfeedd;color:var(--ok)}
 .pie{border-top:2px dashed var(--line);margin-top:20px;padding-top:16px;text-align:center;font-size:.92rem}
 .pie .link{margin-left:4px}
+.contacto{border-top:2px dashed var(--line);margin-top:32px;padding-top:26px;text-align:center}
+.contacto-titulo{font:600 1.1rem var(--serif);color:var(--crust);margin-bottom:18px}
+.contacto-lista{list-style:none;display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.contacto-lista a{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;font:600 .85rem var(--sans);color:var(--crust);text-decoration:none;background:var(--flour);border:1.5px solid var(--crust-2);border-radius:10px;padding:16px 6px;transition:background .15s,color .15s}
+.contacto-lista svg{width:24px;height:24px}
+.contacto-lista a:hover{background:var(--crust);color:var(--flour)}
+@media (max-width:360px){.contacto-lista{grid-template-columns:1fr}.contacto-lista a{flex-direction:row;justify-content:flex-start;padding:12px 16px}}
 .trampa{position:absolute;left:-9999px;height:0;overflow:hidden}
 [hidden]{display:none!important}
 @media (prefers-reduced-motion:no-preference){.ticket{animation:entra .35s ease-out}@keyframes entra{from{opacity:0;transform:translateY(8px)}}}
