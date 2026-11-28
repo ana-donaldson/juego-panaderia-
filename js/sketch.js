@@ -238,7 +238,7 @@ for (let n in IMG_HUEVO) {
     cargarImagenOpcional('assets/recetas/' + IMG_HUEVO[n].con, imagenesPintado, n + "_con");
 }
 // Imagen de la bandeja de "Dar brillo" (se dibuja en el mismo rectángulo 100,100,700x400 que el cuadro gris)
-cargarImagenOpcional('assets/recetas/bandeja.png', imagenesPintado, "bandeja");
+cargarImagenOpcional('assets/recetas/bandeja-metal-dar-brillo.png', imagenesPintado, "bandeja");
     createCanvas(900, 600);
       let canvas = createCanvas(900, 600);
     canvas.style('background', 'transparent'); // Le decimos que no tenga fondo
